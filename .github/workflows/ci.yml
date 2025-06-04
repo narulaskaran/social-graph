@@ -9,6 +9,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test
     steps:
       - uses: actions/checkout@v4
       - name: Use Node.js 20.x
@@ -16,6 +18,6 @@ jobs:
         with:
           node-version: 20.x
       - name: Install dependencies
-        run: npm install
+        run: npm install --ignore-scripts
       - name: Run tests
         run: npm test
