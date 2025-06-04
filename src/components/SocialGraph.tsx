@@ -1,13 +1,15 @@
 "use client";
 
+import { ProfileModal } from "./ProfileModal";
 import { useQuery } from "@tanstack/react-query";
 import React, { useMemo, useEffect, useState } from "react";
 import ForceGraph2D from "react-force-graph-2d";
 
 interface Profile {
-  linkedin_username: string;
-  first_name: string;
-  last_name: string;
+  id: string;
+  firstName: string;
+  lastName: string;
+  linkedinUrl: string;
 }
 
 interface Connection {
@@ -20,7 +22,16 @@ interface GraphData {
   links: { source: string; target: string }[];
 }
 
+interface ApiProfile {
+  linkedin_username: string;
+  first_name: string;
+  last_name: string;
+}
+
 export function SocialGraph() {
+  const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+
   const { data, isLoading, error } = useQuery({
     queryKey: ["graph"],
     queryFn: async () => {
@@ -32,7 +43,7 @@ export function SocialGraph() {
 
   const graphData: GraphData = useMemo(() => {
     if (!data) return { nodes: [], links: [] };
-    const nodes = (data.profiles as Profile[]).map((p) => ({
+    const nodes = (data.profiles as ApiProfile[]).map((p) => ({
       id: p.linkedin_username,
       label: `${p.first_name} ${p.last_name}`,
     }));
@@ -71,6 +82,21 @@ export function SocialGraph() {
     typeof window !== "undefined" &&
     document.documentElement.classList.contains("dark");
 
+  const handleNodeClick = (node: { id: string }) => {
+    const profile = data?.profiles.find(
+      (p: ApiProfile) => p.linkedin_username === node.id
+    );
+    if (profile) {
+      setSelectedProfile({
+        id: profile.linkedin_username,
+        firstName: profile.first_name,
+        lastName: profile.last_name,
+        linkedinUrl: `https://www.linkedin.com/in/${profile.linkedin_username}`,
+      });
+      setModalOpen(true);
+    }
+  };
+
   return (
     <div className="w-full h-full">
       <ForceGraph2D
@@ -108,6 +134,12 @@ export function SocialGraph() {
           ctx.fillStyle = isDark ? "#fff" : "#18181b";
           ctx.fillText(label, node.x!, node.y! + 10);
         }}
+        onNodeClick={handleNodeClick}
+      />
+      <ProfileModal
+        profile={selectedProfile}
+        open={modalOpen}
+        onOpenChange={setModalOpen}
       />
     </div>
   );
