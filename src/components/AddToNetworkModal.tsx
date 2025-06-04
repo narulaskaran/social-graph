@@ -1,5 +1,6 @@
 "use client";
 
+import { LinkedInUrlInput } from "./LinkedInUrlInput";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -78,16 +79,13 @@ export function AddToNetworkModal({ trigger }: { trigger: React.ReactNode }) {
               <label className="block font-medium" htmlFor="self-linkedin">
                 Your LinkedIn URL
               </label>
-              <input
+              <LinkedInUrlInput
                 id="self-linkedin"
-                className="block w-full rounded border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
                 required
                 value={self.linkedin_url}
-                onChange={(e) =>
-                  setSelf((s) => ({ ...s, linkedin_url: e.target.value }))
+                onChange={(value) =>
+                  setSelf((s) => ({ ...s, linkedin_url: value }))
                 }
-                autoFocus
-                type="url"
                 placeholder="https://www.linkedin.com/in/your-profile"
               />
               <div className="flex gap-2 mt-2">
@@ -115,19 +113,13 @@ export function AddToNetworkModal({ trigger }: { trigger: React.ReactNode }) {
               <label className="block font-medium">Connections</label>
               {connections.map((c, idx) => (
                 <div key={idx} className="flex gap-2 items-center mb-2">
-                  <input
-                    className="flex-1 rounded border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  <LinkedInUrlInput
                     required
-                    placeholder="LinkedIn URL"
                     value={c.linkedin_url}
-                    onChange={(e) =>
-                      handleConnectionChange(
-                        idx,
-                        "linkedin_url",
-                        e.target.value
-                      )
+                    onChange={(value) =>
+                      handleConnectionChange(idx, "linkedin_url", value)
                     }
-                    type="url"
+                    placeholder="LinkedIn URL"
                   />
                   <input
                     className="w-32 rounded border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
