@@ -1,12 +1,30 @@
 import { extractLinkedInUsername } from "../../../utils/extractLinkedInUsername";
-import { neon } from "@neondatabase/serverless";
-
-const sql = neon(process.env.DATABASE_URL!);
+import { prisma } from "@/lib/prisma";
 
 interface ConnectionInput {
   linkedin_url: string;
   first_name: string;
   last_name: string;
+}
+
+async function upsertProfile(
+  linkedin_username: string,
+  first_name: string,
+  last_name: string
+) {
+  return prisma.profile.upsert({
+    where: { linkedin_username },
+    update: { first_name, last_name },
+    create: { linkedin_username, first_name, last_name },
+  });
+}
+
+async function upsertConnection(profile_a: string, profile_b: string) {
+  return prisma.connections.upsert({
+    where: { profile_a_profile_b: { profile_a, profile_b } },
+    update: {},
+    create: { profile_a, profile_b },
+  });
 }
 
 export async function POST(request: Request) {
@@ -40,24 +58,24 @@ export async function POST(request: Request) {
       ...c,
       linkedin_username: extractLinkedInUsername(c.linkedin_url),
     }))
-    .filter((c) => c.linkedin_username);
+    .filter((c) => c.linkedin_username) as (ConnectionInput & {
+    linkedin_username: string;
+  })[];
 
   try {
     // Upsert self
-    await sql`INSERT INTO Profile (linkedin_username, first_name, last_name)
-      VALUES (${selfUsername}, ${self.first_name}, ${self.last_name})
-      ON CONFLICT (linkedin_username) DO NOTHING`;
+    await upsertProfile(
+      selfUsername as string,
+      self.first_name,
+      self.last_name
+    );
     // Upsert connections
     for (const c of connectionUsernames) {
-      await sql`INSERT INTO Profile (linkedin_username, first_name, last_name)
-        VALUES (${c.linkedin_username}, ${c.first_name}, ${c.last_name})
-        ON CONFLICT (linkedin_username) DO NOTHING`;
+      await upsertProfile(c.linkedin_username, c.first_name, c.last_name);
       // Insert undirected connection
-      const [a, b] = [selfUsername, c.linkedin_username].sort();
+      const [a, b] = [selfUsername as string, c.linkedin_username].sort();
       if (a !== b) {
-        await sql`INSERT INTO Connections (profile_a, profile_b)
-          VALUES (${a}, ${b})
-          ON CONFLICT (profile_a, profile_b) DO NOTHING`;
+        await upsertConnection(a, b);
       }
     }
     return Response.json({ success: true });
@@ -68,3 +86,5 @@ export async function POST(request: Request) {
     );
   }
 }
+
+export { upsertProfile, upsertConnection };

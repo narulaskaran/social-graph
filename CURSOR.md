@@ -121,4 +121,13 @@ Next: Frontend graph visualization, add-to-network modal, dark/light mode toggle
 - Production readiness (rate limiting, error monitoring)
 - Deployment/dev experience (add .env.template, onboarding docs)
 
+### [Prisma Refactor & Test Improvements]
+
+- Removed all usage of @neondatabase/serverless and raw SQL queries from API routes
+- All database access now uses Prisma Client
+- Refactored repeated upsert logic for profiles and connections into helpers in src/app/api/add/route.ts
+- Added unit tests for upsertProfile and upsertConnection helpers (Jest, with Prisma client mocked)
+- Updated jest.config.js to support TypeScript path aliases (moduleNameMapper)
+- All tests pass
+
 // Pick up from here for future work!

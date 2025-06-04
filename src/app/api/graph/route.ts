@@ -1,12 +1,20 @@
-import { neon } from "@neondatabase/serverless";
-
-const sql = neon(process.env.DATABASE_URL!);
+import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
-    const profiles =
-      await sql`SELECT linkedin_username, first_name, last_name FROM Profile`;
-    const connections = await sql`SELECT profile_a, profile_b FROM Connections`;
+    const profiles = await prisma.profile.findMany({
+      select: {
+        linkedin_username: true,
+        first_name: true,
+        last_name: true,
+      },
+    });
+    const connections = await prisma.connections.findMany({
+      select: {
+        profile_a: true,
+        profile_b: true,
+      },
+    });
     return Response.json({
       profiles,
       connections,
