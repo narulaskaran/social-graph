@@ -60,3 +60,19 @@ Next: Frontend graph visualization, add-to-network modal, dark/light mode toggle
 - Moved all code from frontend/ to project root
 - Removed frontend folder
 - Updated documentation and paths to reflect new structure
+
+### [Graph Visualization Implementation]
+
+- Begin implementation of interactive social graph visualization
+- Will create SocialGraph component using react-force-graph
+- Fetch data from /api/graph and transform for graph rendering
+- Integrate SocialGraph into main page (page.tsx)
+- Add fixed "Add to the network" button (top right)
+- Ensure dark/light mode support and responsiveness
+
+### [Add to the Network Modal]
+
+- Begin implementation of modal for adding user and connections
+- Modal opens from fixed button, uses shadcn/ui Dialog
+- Form includes user fields and dynamic connection fields
+- On submit, POSTs to /api/add and logs result to console
