@@ -1,0 +1,62 @@
+# CURSOR.md
+
+## Project Overview
+
+Social Graph Visualization Web App for exploring and expanding a public, undirected social network. Users can add themselves and their connections, visualized as an interactive graph.
+
+## Tech Stack
+
+- Frontend: React, TypeScript, Tailwind CSS, shadcn/ui, react-force-graph
+- Backend: Vercel serverless functions (TypeScript)
+- Database: Neon (PostgreSQL)
+- Deployment: Vercel
+- Testing: Jest, React Testing Library, GitHub Actions CI
+
+## Initial Implementation Plan
+
+1. Project setup (frontend, backend, Tailwind, shadcn/ui, react-force-graph)
+2. Database schema: Profile (linkedin_username, first_name, last_name), Connections (profile_a, profile_b, undirected, unique)
+3. Backend API: GET /api/graph, POST /api/add (with LinkedIn username extraction and duplicate prevention)
+4. Frontend: Graph visualization, modal for adding profiles/connections, dark/light mode toggle
+5. Utility: LinkedIn username extraction (shared)
+6. Testing: Unit/integration tests, CI with GitHub Actions
+7. Documentation: Keep CURSOR.md and README.md up to date
+
+## Progress Log
+
+### [Scaffolding]
+
+- Created `frontend` (Next.js, TypeScript, Tailwind CSS, shadcn/ui, react-force-graph, React Query, testing libraries)
+- Created `backend` (Vercel serverless functions, TypeScript, pg, dotenv, Jest)
+- Added `.env` to `.gitignore` and documented Neon credential setup in README
+- Initialized testing and CI dependencies for both frontend and backend
+
+Next steps: database schema, backend API, frontend graph, modal, and dark/light mode toggle
+
+### [Backend]
+
+- Added LinkedIn username extraction utility and tests
+- Wrote SQL schema for Profile and Connections tables (undirected, unique)
+- Implemented GET /api/graph and POST /api/add endpoints (profile upsert, undirected connection, duplicate prevention)
+- Added backend README
+
+Next: Frontend graph visualization, add-to-network modal, dark/light mode toggle, and CI setup
+
+### [Refactor: Vercel Best Practices]
+
+- Decided to colocate API routes in Next.js app per Vercel docs (https://vercel.com/docs/functions/functions-api-reference)
+- Will move backend/api/_ to frontend/src/app/api/_
+- Will move backend/utils.ts and utils.test.ts to frontend/src/utils/
+- Will remove backend directory and update docs accordingly
+
+### [Refactor Complete]
+
+- API routes and utilities are now colocated in the Next.js app (frontend/src/app/api, frontend/src/utils)
+- backend directory and redundant files removed
+- Documentation updated to reflect new structure
+
+### [Project Flattened]
+
+- Moved all code from frontend/ to project root
+- Removed frontend folder
+- Updated documentation and paths to reflect new structure
