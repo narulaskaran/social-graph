@@ -83,3 +83,9 @@ Next: Frontend graph visualization, add-to-network modal, dark/light mode toggle
 - Detect system preference and apply automatically
 - Add manual toggle button (top right)
 - Persist user preference (e.g., localStorage)
+
+### [CI Setup]
+
+- Begin setup of GitHub Actions workflow for CI
+- Workflow will run tests on push and pull request
+- Will validate implementation by running CI after each major feature
