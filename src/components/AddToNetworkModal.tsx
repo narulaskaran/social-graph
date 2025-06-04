@@ -66,88 +66,112 @@ export function AddToNetworkModal({ trigger }: { trigger: React.ReactNode }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg w-full">
         <DialogHeader>
           <DialogTitle>Add to the network</DialogTitle>
         </DialogHeader>
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          <div className="space-y-2">
-            <label className="block font-medium">Your LinkedIn URL</label>
-            <input
-              className="input w-full"
-              required
-              value={self.linkedin_url}
-              onChange={(e) =>
-                setSelf((s) => ({ ...s, linkedin_url: e.target.value }))
-              }
-            />
-            <div className="flex gap-2">
+        <form className="space-y-6" onSubmit={handleSubmit} autoComplete="off">
+          <fieldset disabled={submitting} className="space-y-4">
+            <div className="space-y-2">
+              <label className="block font-medium" htmlFor="self-linkedin">
+                Your LinkedIn URL
+              </label>
               <input
-                className="input flex-1"
+                id="self-linkedin"
+                className="block w-full rounded border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
                 required
-                placeholder="First name"
-                value={self.first_name}
+                value={self.linkedin_url}
                 onChange={(e) =>
-                  setSelf((s) => ({ ...s, first_name: e.target.value }))
+                  setSelf((s) => ({ ...s, linkedin_url: e.target.value }))
                 }
+                autoFocus
+                type="url"
+                placeholder="https://www.linkedin.com/in/your-profile"
               />
-              <input
-                className="input flex-1"
-                required
-                placeholder="Last name"
-                value={self.last_name}
-                onChange={(e) =>
-                  setSelf((s) => ({ ...s, last_name: e.target.value }))
-                }
-              />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <label className="block font-medium">Connections</label>
-            {connections.map((c, idx) => (
-              <div key={idx} className="flex gap-2 items-center mb-2">
+              <div className="flex gap-2 mt-2">
                 <input
-                  className="input flex-1"
-                  required
-                  placeholder="LinkedIn URL"
-                  value={c.linkedin_url}
-                  onChange={(e) =>
-                    handleConnectionChange(idx, "linkedin_url", e.target.value)
-                  }
-                />
-                <input
-                  className="input w-32"
+                  className="flex-1 rounded border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   required
                   placeholder="First name"
-                  value={c.first_name}
+                  value={self.first_name}
                   onChange={(e) =>
-                    handleConnectionChange(idx, "first_name", e.target.value)
+                    setSelf((s) => ({ ...s, first_name: e.target.value }))
                   }
                 />
                 <input
-                  className="input w-32"
+                  className="flex-1 rounded border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   required
                   placeholder="Last name"
-                  value={c.last_name}
+                  value={self.last_name}
                   onChange={(e) =>
-                    handleConnectionChange(idx, "last_name", e.target.value)
+                    setSelf((s) => ({ ...s, last_name: e.target.value }))
                   }
                 />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => removeConnection(idx)}
-                >
-                  -
-                </Button>
               </div>
-            ))}
-            <Button type="button" variant="outline" onClick={addConnection}>
-              + Add connection
-            </Button>
-          </div>
-          <Button type="submit" className="w-full" disabled={submitting}>
+            </div>
+            <div className="space-y-2">
+              <label className="block font-medium">Connections</label>
+              {connections.map((c, idx) => (
+                <div key={idx} className="flex gap-2 items-center mb-2">
+                  <input
+                    className="flex-1 rounded border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                    required
+                    placeholder="LinkedIn URL"
+                    value={c.linkedin_url}
+                    onChange={(e) =>
+                      handleConnectionChange(
+                        idx,
+                        "linkedin_url",
+                        e.target.value
+                      )
+                    }
+                    type="url"
+                  />
+                  <input
+                    className="w-32 rounded border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                    required
+                    placeholder="First name"
+                    value={c.first_name}
+                    onChange={(e) =>
+                      handleConnectionChange(idx, "first_name", e.target.value)
+                    }
+                  />
+                  <input
+                    className="w-32 rounded border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                    required
+                    placeholder="Last name"
+                    value={c.last_name}
+                    onChange={(e) =>
+                      handleConnectionChange(idx, "last_name", e.target.value)
+                    }
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Remove connection"
+                    onClick={() => removeConnection(idx)}
+                  >
+                    -
+                  </Button>
+                </div>
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addConnection}
+                className="mt-2"
+              >
+                + Add connection
+              </Button>
+            </div>
+          </fieldset>
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={submitting}
+            aria-busy={submitting}
+          >
             {submitting ? "Submitting..." : "Submit"}
           </Button>
         </form>

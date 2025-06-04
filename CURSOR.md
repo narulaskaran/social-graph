@@ -89,3 +89,11 @@ Next: Frontend graph visualization, add-to-network modal, dark/light mode toggle
 - Begin setup of GitHub Actions workflow for CI
 - Workflow will run tests on push and pull request
 - Will validate implementation by running CI after each major feature
+
+### [UI Polish]
+
+- Begin UI polish for graph and modal
+- Improve graph readability, node/edge colors, and label contrast
+- Enhance modal accessibility, input styling, and responsiveness
+- Ensure all buttons and controls are accessible and visually distinct
+- Will run tests after polish is complete

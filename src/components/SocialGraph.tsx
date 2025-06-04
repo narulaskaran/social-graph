@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect, useState } from "react";
 import { ForceGraph2D } from "react-force-graph";
 
 interface Profile {
@@ -41,6 +41,17 @@ export function SocialGraph() {
     return { nodes, links };
   }, [data]);
 
+  // Responsive sizing
+  const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
+  useEffect(() => {
+    function handleResize() {
+      setDimensions({ width: window.innerWidth, height: window.innerHeight });
+    }
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   if (isLoading)
     return (
       <div className="w-full h-full flex items-center justify-center">
@@ -54,35 +65,41 @@ export function SocialGraph() {
       </div>
     );
 
-  // Responsive sizing
-  const [width, height] = [window.innerWidth, window.innerHeight];
+  const isDark =
+    typeof window !== "undefined" &&
+    document.documentElement.classList.contains("dark");
 
   return (
     <div className="w-full h-full">
       <ForceGraph2D
-        width={width}
-        height={height}
+        width={dimensions.width}
+        height={dimensions.height}
         graphData={graphData}
         nodeLabel={(node: any) => node.label}
         nodeAutoColorBy="id"
-        linkColor={() =>
-          document.documentElement.classList.contains("dark") ? "#888" : "#222"
-        }
-        backgroundColor={
-          document.documentElement.classList.contains("dark")
-            ? "#18181b"
-            : "#fff"
-        }
+        linkColor={() => (isDark ? "#aaa" : "#444")}
+        backgroundColor={isDark ? "#18181b" : "#fff"}
         nodeCanvasObjectMode={() => "after"}
         nodeCanvasObject={(node, ctx, globalScale) => {
           const label = node.label as string;
-          const fontSize = 12 / globalScale;
+          const fontSize = 14 / globalScale;
           ctx.font = `${fontSize}px Sans-Serif`;
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
-          ctx.fillStyle = document.documentElement.classList.contains("dark")
-            ? "#fff"
-            : "#000";
+          // Draw background for label
+          const textWidth = ctx.measureText(label).width;
+          const padding = 4;
+          ctx.fillStyle = isDark
+            ? "rgba(24,24,27,0.85)"
+            : "rgba(255,255,255,0.85)";
+          ctx.fillRect(
+            node.x! - textWidth / 2 - padding,
+            node.y! + 10 - fontSize / 2 - padding,
+            textWidth + 2 * padding,
+            fontSize + 2 * padding
+          );
+          // Draw text
+          ctx.fillStyle = isDark ? "#fff" : "#18181b";
           ctx.fillText(label, node.x!, node.y! + 10);
         }}
       />
