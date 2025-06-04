@@ -1,14 +1,12 @@
-const { createDefaultPreset } = require("ts-jest");
+const nextJest = require("next/jest");
 
-const tsJestTransformCfg = createDefaultPreset().transform;
+const createJestConfig = nextJest({
+  dir: "./",
+});
 
-/** @type {import("jest").Config} **/
-module.exports = {
-  testEnvironment: "node",
-  transform: {
-    ...tsJestTransformCfg,
-  },
-  moduleNameMapper: {
-    "^@/(.*)$": "<rootDir>/src/$1",
-  },
+const customJestConfig = {
+  setupFilesAfterEnv: ["<rootDir>/setupTests.js"],
+  testEnvironment: "jsdom",
 };
+
+module.exports = createJestConfig(customJestConfig);
