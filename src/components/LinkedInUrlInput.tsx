@@ -1,21 +1,8 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import Autocomplete from "@mui/material/Autocomplete";
+import TextField from "@mui/material/TextField";
 import { useQuery } from "@tanstack/react-query";
-import { Check, ChevronsUpDown } from "lucide-react";
 import * as React from "react";
 
 interface Profile {
@@ -35,8 +22,6 @@ export function LinkedInUrlInput({
   onChange,
   placeholder = "https://www.linkedin.com/in/your-profile",
 }: LinkedInUrlInputProps) {
-  const [open, setOpen] = React.useState(false);
-
   const { data: profiles = [] } = useQuery<Profile[]>({
     queryKey: ["profiles"],
     queryFn: async () => {
@@ -46,65 +31,43 @@ export function LinkedInUrlInput({
     },
   });
 
-  const filteredProfiles = React.useMemo(() => {
-    if (!value) return profiles;
-    const searchTerm = value.toLowerCase();
-    return profiles.filter(
-      (profile) =>
-        profile.linkedin_username.toLowerCase().includes(searchTerm) ||
-        `${profile.first_name} ${profile.last_name}`
-          .toLowerCase()
-          .includes(searchTerm)
-    );
-  }, [profiles, value]);
+  // Build options as LinkedIn URLs with label
+  const options = profiles.map((profile) => ({
+    label: `${profile.first_name} ${profile.last_name} (${profile.linkedin_username})`,
+    url: `https://www.linkedin.com/in/${profile.linkedin_username}`,
+  }));
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-full justify-between"
-        >
-          {value || placeholder}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-full p-0">
-        <Command>
-          <CommandInput
-            placeholder="Search profiles..."
-            value={value}
-            onValueChange={onChange}
-          />
-          <CommandEmpty>No profiles found.</CommandEmpty>
-          <CommandGroup>
-            {filteredProfiles.map((profile) => (
-              <CommandItem
-                key={profile.linkedin_username}
-                value={`https://www.linkedin.com/in/${profile.linkedin_username}`}
-                onSelect={(currentValue) => {
-                  onChange(currentValue);
-                  setOpen(false);
-                }}
-              >
-                <Check
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    value ===
-                      `https://www.linkedin.com/in/${profile.linkedin_username}`
-                      ? "opacity-100"
-                      : "opacity-0"
-                  )}
-                />
-                {profile.first_name} {profile.last_name} (
-                {profile.linkedin_username})
-              </CommandItem>
-            ))}
-          </CommandGroup>
-        </Command>
-      </PopoverContent>
-    </Popover>
+    <Autocomplete
+      freeSolo
+      options={options}
+      getOptionLabel={(option) =>
+        typeof option === "string" ? option : option.url
+      }
+      inputValue={value}
+      onInputChange={(_, newInputValue) => onChange(newInputValue)}
+      onChange={(_, newValue) => {
+        if (typeof newValue === "string") {
+          onChange(newValue);
+        } else if (newValue && typeof newValue === "object") {
+          onChange(newValue.url);
+        }
+      }}
+      renderOption={(props, option) => (
+        <li {...props} key={option.url}>
+          {option.label}
+        </li>
+      )}
+      renderInput={(params) => (
+        <TextField
+          {...params}
+          label={undefined}
+          placeholder={placeholder}
+          variant="outlined"
+          size="small"
+          fullWidth
+        />
+      )}
+    />
   );
 }
