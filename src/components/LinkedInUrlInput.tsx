@@ -28,16 +28,12 @@ interface LinkedInUrlInputProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
-  required?: boolean;
-  id?: string;
 }
 
 export function LinkedInUrlInput({
   value,
   onChange,
   placeholder = "https://www.linkedin.com/in/your-profile",
-  required = false,
-  id,
 }: LinkedInUrlInputProps) {
   const [open, setOpen] = React.useState(false);
 

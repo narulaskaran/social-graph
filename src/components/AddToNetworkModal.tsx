@@ -80,8 +80,6 @@ export function AddToNetworkModal({ trigger }: { trigger: React.ReactNode }) {
                 Your LinkedIn URL
               </label>
               <LinkedInUrlInput
-                id="self-linkedin"
-                required
                 value={self.linkedin_url}
                 onChange={(value) =>
                   setSelf((s) => ({ ...s, linkedin_url: value }))
@@ -114,7 +112,6 @@ export function AddToNetworkModal({ trigger }: { trigger: React.ReactNode }) {
               {connections.map((c, idx) => (
                 <div key={idx} className="flex gap-2 items-center mb-2">
                   <LinkedInUrlInput
-                    required
                     value={c.linkedin_url}
                     onChange={(value) =>
                       handleConnectionChange(idx, "linkedin_url", value)
