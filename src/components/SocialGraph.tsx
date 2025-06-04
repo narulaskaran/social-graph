@@ -1,3 +1,5 @@
+"use client";
+
 import { useQuery } from "@tanstack/react-query";
 import React, { useMemo, useEffect, useState } from "react";
 import { ForceGraph2D } from "react-force-graph";
