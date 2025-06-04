@@ -76,3 +76,10 @@ Next: Frontend graph visualization, add-to-network modal, dark/light mode toggle
 - Modal opens from fixed button, uses shadcn/ui Dialog
 - Form includes user fields and dynamic connection fields
 - On submit, POSTs to /api/add and logs result to console
+
+### [Dark/Light Mode Toggle]
+
+- Begin implementation of dark/light mode support
+- Detect system preference and apply automatically
+- Add manual toggle button (top right)
+- Persist user preference (e.g., localStorage)
