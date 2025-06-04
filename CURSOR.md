@@ -97,3 +97,28 @@ Next: Frontend graph visualization, add-to-network modal, dark/light mode toggle
 - Enhance modal accessibility, input styling, and responsiveness
 - Ensure all buttons and controls are accessible and visually distinct
 - Will run tests after polish is complete
+
+### [Implementation Status & Next Steps]
+
+#### ✅ Completed
+
+- Project structure: flat, colocated API and utilities, Vercel/Next.js best practices
+- Database schema: Profile and Connections tables, undirected edges, username extraction
+- Backend API: /api/graph and /api/add endpoints, Neon serverless driver
+- Frontend: graph visualization, add-to-network modal, dark/light mode
+- Testing: Jest configured, utility tests in place
+- CI/CD: GitHub Actions runs tests on push/PR
+- Documentation: README.md and CURSOR.md up to date
+- UI polish: responsive, accessible, visually modern
+
+#### 🟡 Remaining / Optional Enhancements
+
+- More automated tests (API endpoints, React components)
+- User feedback (show UI success/error after form submit)
+- Graph enhancements (tooltips, node click actions, clustering, filtering)
+- Accessibility audit (axe, Lighthouse)
+- Performance optimization (lazy load, bundle size)
+- Production readiness (rate limiting, error monitoring)
+- Deployment/dev experience (add .env.template, onboarding docs)
+
+// Pick up from here for future work!

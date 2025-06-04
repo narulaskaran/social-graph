@@ -14,7 +14,7 @@ Social network without the features
 3. Create a `.env` file in the root directory and add your Neon database credentials:
 
    ```env
-   NEON_DATABASE_URL=your_neon_connection_string
+   DATABASE_URL=your_neon_connection_string
    ```
 
 4. See `CURSOR.md` for ongoing implementation context and project structure.

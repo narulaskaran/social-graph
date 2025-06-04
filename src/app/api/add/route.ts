@@ -1,7 +1,13 @@
 import { extractLinkedInUsername } from "../../../utils/extractLinkedInUsername";
 import { neon } from "@neondatabase/serverless";
 
-const sql = neon(process.env.NEON_DATABASE_URL!);
+const sql = neon(process.env.DATABASE_URL!);
+
+interface ConnectionInput {
+  linkedin_url: string;
+  first_name: string;
+  last_name: string;
+}
 
 export async function POST(request: Request) {
   const body = await request.json();
@@ -30,11 +36,11 @@ export async function POST(request: Request) {
   }
 
   const connectionUsernames = connections
-    .map((c: any) => ({
+    .map((c: ConnectionInput) => ({
       ...c,
       linkedin_username: extractLinkedInUsername(c.linkedin_url),
     }))
-    .filter((c: any) => c.linkedin_username);
+    .filter((c) => c.linkedin_username);
 
   try {
     // Upsert self

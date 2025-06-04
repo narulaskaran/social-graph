@@ -1,7 +1,16 @@
+"use client";
+
 import { AddToNetworkModal } from "../components/AddToNetworkModal";
-import { SocialGraph } from "../components/SocialGraph";
 import { ThemeToggle } from "../components/ThemeToggle";
+import dynamic from "next/dynamic";
 import Image from "next/image";
+
+const SocialGraph = dynamic(
+  () => import("../components/SocialGraph").then((mod) => mod.SocialGraph),
+  {
+    ssr: false,
+  }
+);
 
 export default function Home() {
   return (

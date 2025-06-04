@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import React, { useMemo, useEffect, useState } from "react";
-import { ForceGraph2D } from "react-force-graph";
+import ForceGraph2D from "react-force-graph-2d";
 
 interface Profile {
   linkedin_username: string;
@@ -77,12 +77,16 @@ export function SocialGraph() {
         width={dimensions.width}
         height={dimensions.height}
         graphData={graphData}
-        nodeLabel={(node: any) => node.label}
+        nodeLabel={(node: { id: string; label: string }) => node.label}
         nodeAutoColorBy="id"
         linkColor={() => (isDark ? "#aaa" : "#444")}
         backgroundColor={isDark ? "#18181b" : "#fff"}
         nodeCanvasObjectMode={() => "after"}
-        nodeCanvasObject={(node, ctx, globalScale) => {
+        nodeCanvasObject={(
+          node: { id: string; label: string; x?: number; y?: number },
+          ctx: CanvasRenderingContext2D,
+          globalScale: number
+        ) => {
           const label = node.label as string;
           const fontSize = 14 / globalScale;
           ctx.font = `${fontSize}px Sans-Serif`;
