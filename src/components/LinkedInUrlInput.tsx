@@ -2,6 +2,7 @@
 
 import Autocomplete from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
 
@@ -16,6 +17,25 @@ interface LinkedInUrlInputProps {
   onChange: (value: string) => void;
   placeholder?: string;
 }
+
+const lightTheme = createTheme({
+  palette: {
+    mode: "light",
+  },
+});
+
+const darkTheme = createTheme({
+  palette: {
+    mode: "dark",
+    background: {
+      default: "#18181b",
+      paper: "#232326",
+    },
+    text: {
+      primary: "#fff",
+    },
+  },
+});
 
 export function LinkedInUrlInput({
   value,
@@ -37,37 +57,79 @@ export function LinkedInUrlInput({
     url: `https://www.linkedin.com/in/${profile.linkedin_username}`,
   }));
 
+  // Local MUI theme switching
+  const [muiTheme, setMuiTheme] = React.useState(lightTheme);
+  React.useEffect(() => {
+    const isDark = document.documentElement.classList.contains("dark");
+    setMuiTheme(isDark ? darkTheme : lightTheme);
+    const observer = new MutationObserver(() => {
+      const isDarkNow = document.documentElement.classList.contains("dark");
+      setMuiTheme(isDarkNow ? darkTheme : lightTheme);
+    });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <Autocomplete
-      freeSolo
-      options={options}
-      getOptionLabel={(option) =>
-        typeof option === "string" ? option : option.url
-      }
-      inputValue={value}
-      onInputChange={(_, newInputValue) => onChange(newInputValue)}
-      onChange={(_, newValue) => {
-        if (typeof newValue === "string") {
-          onChange(newValue);
-        } else if (newValue && typeof newValue === "object") {
-          onChange(newValue.url);
+    <ThemeProvider theme={muiTheme}>
+      <Autocomplete
+        freeSolo
+        options={options}
+        getOptionLabel={(option) =>
+          typeof option === "string" ? option : option.url
         }
-      }}
-      renderOption={(props, option) => (
-        <li {...props} key={option.url}>
-          {option.label}
-        </li>
-      )}
-      renderInput={(params) => (
-        <TextField
-          {...params}
-          label={undefined}
-          placeholder={placeholder}
-          variant="outlined"
-          size="small"
-          fullWidth
-        />
-      )}
-    />
+        isOptionEqualToValue={(option, val) => {
+          const optionUrl = typeof option === "string" ? option : option.url;
+          const valueUrl = typeof val === "string" ? val : val.url;
+          return optionUrl === valueUrl;
+        }}
+        inputValue={value}
+        onInputChange={(_, newInputValue, reason) => {
+          // Prevent clearing on blur
+          if (reason === "reset") return;
+          onChange(newInputValue);
+        }}
+        onChange={(_, newValue) => {
+          if (typeof newValue === "string") {
+            onChange(newValue);
+          } else if (newValue && typeof newValue === "object") {
+            onChange(newValue.url);
+          } else {
+            onChange("");
+          }
+        }}
+        filterOptions={(opts, state) => {
+          // Show all options if input is empty, otherwise filter by url or label
+          if (!state.inputValue) return opts;
+          const search = state.inputValue.toLowerCase();
+          return opts.filter((opt) => {
+            const url = typeof opt === "string" ? opt : opt.url;
+            const label = typeof opt === "string" ? opt : opt.label;
+            return (
+              url.toLowerCase().includes(search) ||
+              label.toLowerCase().includes(search)
+            );
+          });
+        }}
+        renderOption={(props, option) => (
+          <li {...props} key={typeof option === "string" ? option : option.url}>
+            {typeof option === "string" ? option : option.label}
+          </li>
+        )}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            label={undefined}
+            placeholder={placeholder}
+            variant="outlined"
+            size="small"
+            fullWidth
+          />
+        )}
+      />
+    </ThemeProvider>
   );
 }
