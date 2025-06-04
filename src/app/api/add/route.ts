@@ -1,5 +1,7 @@
 import { extractLinkedInUsername } from "../../../utils/extractLinkedInUsername";
-import { Client } from "pg";
+import { neon } from "@neondatabase/serverless";
+
+const sql = neon(process.env.NEON_DATABASE_URL!);
 
 export async function POST(request: Request) {
   const body = await request.json();
@@ -34,43 +36,28 @@ export async function POST(request: Request) {
     }))
     .filter((c: any) => c.linkedin_username);
 
-  const client = new Client({
-    connectionString: process.env.NEON_DATABASE_URL,
-  });
   try {
-    await client.connect();
     // Upsert self
-    await client.query(
-      `INSERT INTO Profile (linkedin_username, first_name, last_name)
-       VALUES ($1, $2, $3)
-       ON CONFLICT (linkedin_username) DO NOTHING`,
-      [selfUsername, self.first_name, self.last_name]
-    );
+    await sql`INSERT INTO Profile (linkedin_username, first_name, last_name)
+      VALUES (${selfUsername}, ${self.first_name}, ${self.last_name})
+      ON CONFLICT (linkedin_username) DO NOTHING`;
     // Upsert connections
     for (const c of connectionUsernames) {
-      await client.query(
-        `INSERT INTO Profile (linkedin_username, first_name, last_name)
-         VALUES ($1, $2, $3)
-         ON CONFLICT (linkedin_username) DO NOTHING`,
-        [c.linkedin_username, c.first_name, c.last_name]
-      );
+      await sql`INSERT INTO Profile (linkedin_username, first_name, last_name)
+        VALUES (${c.linkedin_username}, ${c.first_name}, ${c.last_name})
+        ON CONFLICT (linkedin_username) DO NOTHING`;
       // Insert undirected connection
       const [a, b] = [selfUsername, c.linkedin_username].sort();
       if (a !== b) {
-        await client.query(
-          `INSERT INTO Connections (profile_a, profile_b)
-           VALUES ($1, $2)
-           ON CONFLICT (profile_a, profile_b) DO NOTHING`,
-          [a, b]
-        );
+        await sql`INSERT INTO Connections (profile_a, profile_b)
+          VALUES (${a}, ${b})
+          ON CONFLICT (profile_a, profile_b) DO NOTHING`;
       }
     }
-    await client.end();
     return Response.json({ success: true });
   } catch (err) {
-    await client.end();
     return Response.json(
-      { error: "Database error", details: err },
+      { error: "Database error", details: String(err) },
       { status: 500 }
     );
   }

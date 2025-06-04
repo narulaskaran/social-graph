@@ -1,27 +1,19 @@
-import { NextRequest } from "next/server";
-import { Client } from "pg";
+import { neon } from "@neondatabase/serverless";
 
-export async function GET(request: NextRequest) {
-  const client = new Client({
-    connectionString: process.env.NEON_DATABASE_URL,
-  });
+const sql = neon(process.env.NEON_DATABASE_URL!);
+
+export async function GET() {
   try {
-    await client.connect();
-    const profiles = await client.query(
-      "SELECT linkedin_username, first_name, last_name FROM Profile"
-    );
-    const connections = await client.query(
-      "SELECT profile_a, profile_b FROM Connections"
-    );
-    await client.end();
+    const profiles =
+      await sql`SELECT linkedin_username, first_name, last_name FROM Profile`;
+    const connections = await sql`SELECT profile_a, profile_b FROM Connections`;
     return Response.json({
-      profiles: profiles.rows,
-      connections: connections.rows,
+      profiles,
+      connections,
     });
   } catch (err) {
-    await client.end();
     return Response.json(
-      { error: "Database error", details: err },
+      { error: "Database error", details: String(err) },
       { status: 500 }
     );
   }
