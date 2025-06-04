@@ -1,16 +1,23 @@
 import * as React from "react";
 
 export function ThemeToggle() {
-  const [theme, setTheme] = React.useState<"light" | "dark">(() => {
+  const [theme, setTheme] = React.useState<"light" | "dark">("light");
+
+  // On mount, sync with localStorage or system preference
+  React.useEffect(() => {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("theme");
-      if (stored === "light" || stored === "dark") return stored;
-      return window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light";
+      if (stored === "light" || stored === "dark") {
+        setTheme(stored);
+      } else {
+        setTheme(
+          window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light"
+        );
+      }
     }
-    return "light";
-  });
+  }, []);
 
   React.useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");

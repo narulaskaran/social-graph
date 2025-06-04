@@ -1,0 +1,32 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Profile {
+  linkedin_username String        @id
+  first_name        String
+  last_name         String
+  connectionsA      Connections[] @relation("A")
+  connectionsB      Connections[] @relation("B")
+}
+
+model Connections {
+  profile_a String
+  profile_b String
+
+  profileA Profile @relation("A", fields: [profile_a], references: [linkedin_username])
+  profileB Profile @relation("B", fields: [profile_b], references: [linkedin_username])
+
+  @@id([profile_a, profile_b])
+}

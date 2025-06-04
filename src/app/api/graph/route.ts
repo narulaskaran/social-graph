@@ -12,6 +12,7 @@ export async function GET() {
       connections,
     });
   } catch (err) {
+    console.error("API /api/graph error:", err);
     return Response.json(
       { error: "Database error", details: String(err) },
       { status: 500 }
