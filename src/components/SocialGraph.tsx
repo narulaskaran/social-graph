@@ -1,5 +1,6 @@
 "use client";
 
+import { DeleteConnectionDialog } from "./DeleteConnectionDialog";
 import { ProfileModal } from "./ProfileModal";
 import { useQuery } from "@tanstack/react-query";
 import React, {
@@ -64,6 +65,13 @@ export function SocialGraph() {
     | undefined
   >(undefined);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedEdge, setSelectedEdge] = useState<{
+    source: string;
+    target: string;
+    sourceName: string;
+    targetName: string;
+  } | null>(null);
 
   // Responsive sizing effect
   useEffect(() => {
@@ -195,6 +203,55 @@ export function SocialGraph() {
     }
   }, [graphData]);
 
+  const handleEdgeClick = useCallback(
+    (edge: LinkObject<GraphNode, { source: string; target: string }>) => {
+      const sourceId =
+        typeof edge.source === "object"
+          ? (edge.source as GraphNode).id
+          : edge.source;
+      const targetId =
+        typeof edge.target === "object"
+          ? (edge.target as GraphNode).id
+          : edge.target;
+      const sourceNode = graphData.nodes.find((n) => n.id === sourceId);
+      const targetNode = graphData.nodes.find((n) => n.id === targetId);
+
+      if (sourceNode && targetNode) {
+        setSelectedEdge({
+          source: sourceId,
+          target: targetId,
+          sourceName: sourceNode.label,
+          targetName: targetNode.label,
+        });
+
+        setDeleteDialogOpen(true);
+      }
+    },
+    [graphData.nodes]
+  );
+
+  const handleDeleteConnection = useCallback(async () => {
+    if (!selectedEdge) return;
+
+    try {
+      const res = await fetch("/api/connections", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          source: selectedEdge.source,
+          target: selectedEdge.target,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Failed to delete connection");
+      await refetch();
+      setDeleteDialogOpen(false);
+      setSelectedEdge(null);
+    } catch (err) {
+      console.error("Error deleting connection:", err);
+    }
+  }, [selectedEdge, refetch]);
+
   if (isLoading)
     return (
       <div className="w-full h-full flex items-center justify-center">
@@ -215,7 +272,8 @@ export function SocialGraph() {
       data-testid="social-graph"
     >
       <div className="fixed top-4 left-1/2 -translate-x-1/2 bg-primary/90 text-primary-foreground px-4 py-2 rounded shadow z-10">
-        Click one node, then another to create a connection
+        Click one node, then another to create a connection. Click an edge to
+        delete it.
       </div>
       <ForceGraph2D
         ref={fgRef}
@@ -227,11 +285,14 @@ export function SocialGraph() {
           if (n.id === hoveredNodeId) return "#38bdf8"; // sky-400
           return "#7dd3fc"; // sky-300
         }}
-        linkColor={() => "#64748b"} // slate-500
+        linkColor={() => "#94a3b8"} // slate-400
         nodeRelSize={6}
-        linkWidth={1}
+        linkWidth={2}
+        // linkDirectionalParticles={2}
+        // linkDirectionalParticleWidth={2}
         onNodeClick={handleNodeClick}
         onNodeHover={handleNodeHover}
+        onLinkClick={handleEdgeClick}
         nodeCanvasObject={(node, ctx, globalScale) => {
           const label = (node as GraphNode).label;
           const fontSize = 16 / globalScale;
@@ -302,6 +363,15 @@ export function SocialGraph() {
           profile={selectedProfile}
           open={modalOpen}
           onOpenChange={setModalOpen}
+        />
+      )}
+      {selectedEdge && (
+        <DeleteConnectionDialog
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          onConfirm={handleDeleteConnection}
+          sourceName={selectedEdge.sourceName}
+          targetName={selectedEdge.targetName}
         />
       )}
     </div>
