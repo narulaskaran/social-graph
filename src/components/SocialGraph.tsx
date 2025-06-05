@@ -187,6 +187,14 @@ export function SocialGraph() {
     setHoveredNodeId(node ? (node as GraphNode).id : null);
   };
 
+  // Add this useEffect after the ForceGraph2D component (but inside the SocialGraph function)
+  useEffect(() => {
+    if (fgRef.current) {
+      fgRef.current.d3Force("charge")?.strength(-50);
+      fgRef.current.d3Force("link")?.distance(50);
+    }
+  }, [graphData]);
+
   if (isLoading)
     return (
       <div className="w-full h-full flex items-center justify-center">
@@ -224,6 +232,24 @@ export function SocialGraph() {
         linkWidth={1}
         onNodeClick={handleNodeClick}
         onNodeHover={handleNodeHover}
+        nodeCanvasObject={(node, ctx, globalScale) => {
+          const label = (node as GraphNode).label;
+          const fontSize = 16 / globalScale;
+          // Draw node (circle)
+          ctx.beginPath();
+          ctx.arc(node.x!, node.y!, 8, 0, 2 * Math.PI, false);
+          ctx.fillStyle = "#7dd3fc"; // or use your nodeColor logic
+          ctx.fill();
+          ctx.strokeStyle = "#222";
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          // Draw label above node
+          ctx.font = `${fontSize}px Sans-Serif`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "bottom";
+          ctx.fillStyle = "#fff";
+          ctx.fillText(label, node.x!, node.y! - 12);
+        }}
       />
       {/* Draw temporary edge if dragging */}
       {edgeCreation.fromNode && edgeCreation.toPosition && (
