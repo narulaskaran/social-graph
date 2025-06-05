@@ -10,7 +10,11 @@ import React, {
   useRef,
 } from "react";
 import ForceGraph2D from "react-force-graph-2d";
-import type { NodeObject, ForceGraphMethods } from "react-force-graph-2d";
+import type {
+  NodeObject,
+  ForceGraphMethods,
+  LinkObject,
+} from "react-force-graph-2d";
 
 interface Profile {
   id: string;
@@ -52,7 +56,13 @@ export function SocialGraph() {
     toPosition: { x: number; y: number } | null;
   }>({ fromNode: null, toPosition: null });
   const [selectedProfile] = useState<Profile | null>(null);
-  const fgRef = useRef<ForceGraphMethods<GraphNode, any> | null>(null);
+  const fgRef = useRef<
+    | ForceGraphMethods<
+        NodeObject<GraphNode>,
+        LinkObject<GraphNode, { source: string; target: string }>
+      >
+    | undefined
+  >(undefined);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Responsive sizing effect
@@ -121,7 +131,7 @@ export function SocialGraph() {
       const rect = containerRef.current.getBoundingClientRect();
       const mouseX = event.clientX - rect.left;
       const mouseY = event.clientY - rect.top;
-      const fg = fgRef.current as any;
+      const fg = fgRef.current;
       const graphCoords = fg.screen2GraphCoords(mouseX, mouseY);
       setEdgeCreation((ec) =>
         ec.fromNode
@@ -200,7 +210,7 @@ export function SocialGraph() {
         Click one node, then another to create a connection
       </div>
       <ForceGraph2D
-        ref={fgRef as any}
+        ref={fgRef}
         graphData={graphData}
         nodeLabel={(node: NodeObject<GraphNode>) => (node as GraphNode).label}
         nodeColor={(node: NodeObject<GraphNode>) => {
