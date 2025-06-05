@@ -1,6 +1,6 @@
 "use client";
 
-import { AddToNetworkModal } from "../components/AddToNetworkModal";
+import { AddConnectionModal } from "../components/AddConnectionModal";
 import { ThemeToggle } from "../components/ThemeToggle";
 import dynamic from "next/dynamic";
 import Image from "next/image";
@@ -17,7 +17,7 @@ export default function Home() {
     <main className="relative w-screen h-screen overflow-hidden">
       <SocialGraph />
       <ThemeToggle />
-      <AddToNetworkModal
+      <AddConnectionModal
         trigger={
           <button className="fixed top-4 right-4 z-10 px-4 py-2 rounded bg-primary text-primary-foreground shadow hover:bg-primary/90 transition">
             Add to the network

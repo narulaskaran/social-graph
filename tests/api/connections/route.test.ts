@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { POST } from "./route";
+import { POST } from "@/app/api/connections/route";
 import { prisma } from "@/lib/prisma";
 // Polyfill Request for Node test environment
 import { Request as NodeFetchRequest } from "node-fetch";

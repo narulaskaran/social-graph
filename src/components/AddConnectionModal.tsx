@@ -17,7 +17,7 @@ interface ConnectionInput {
   last_name: string;
 }
 
-export function AddToNetworkModal({ trigger }: { trigger: React.ReactNode }) {
+export function AddConnectionModal({ trigger }: { trigger: React.ReactNode }) {
   const [open, setOpen] = React.useState(false);
   const [self, setSelf] = React.useState({
     linkedin_url: "",

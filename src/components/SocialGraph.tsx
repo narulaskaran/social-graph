@@ -179,8 +179,6 @@ export function SocialGraph() {
         onNodeClick={handleNodeClick}
         onNodeDrag={handleNodeDrag}
         nodeRelSize={6}
-        linkDirectionalParticles={2}
-        linkDirectionalParticleSpeed={0.005}
       />
       <ProfileModal
         profile={selectedProfile}
