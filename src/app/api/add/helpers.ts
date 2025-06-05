@@ -13,9 +13,11 @@ export async function upsertProfile(
 }
 
 export async function upsertConnection(profile_a: string, profile_b: string) {
+  // Ensure idempotency by lexicographically ordering profile_a and profile_b
+  const [a, b] = [profile_a, profile_b].sort();
   return prisma.connections.upsert({
-    where: { profile_a_profile_b: { profile_a, profile_b } },
+    where: { profile_a_profile_b: { profile_a: a, profile_b: b } },
     update: {},
-    create: { profile_a, profile_b },
+    create: { profile_a: a, profile_b: b },
   });
 }

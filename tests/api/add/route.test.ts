@@ -41,4 +41,14 @@ describe("upsertConnection", () => {
       create: { profile_a: "a", profile_b: "b" },
     });
   });
+
+  it("ensures idempotency by lexicographically ordering profile_a and profile_b", async () => {
+    mockConnectionsUpsert.mockResolvedValueOnce({});
+    await upsertConnection("b", "a");
+    expect(mockConnectionsUpsert).toHaveBeenCalledWith({
+      where: { profile_a_profile_b: { profile_a: "a", profile_b: "b" } },
+      update: {},
+      create: { profile_a: "a", profile_b: "b" },
+    });
+  });
 });
