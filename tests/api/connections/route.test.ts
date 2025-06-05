@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { POST } from "./route";
 import { prisma } from "@/lib/prisma";
 // Polyfill Request for Node test environment
@@ -10,8 +11,6 @@ if (typeof global.Request === "undefined") {
 
 // Polyfill Response for Node test environment (test-only mock, not a real Response)
 if (typeof global.Response === "undefined") {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment, @typescript-eslint/no-explicit-any
-  // @ts-expect-error: test-only mock for global.Response
   global.Response = class {
     status: number;
     _json: unknown;
@@ -20,7 +19,9 @@ if (typeof global.Response === "undefined") {
       this.status = init.status;
     }
     static json(body: unknown, init: { status?: number } = {}) {
-      return new global.Response(body as any, { status: init.status ?? 200 });
+      return new global.Response(body as unknown, {
+        status: init.status ?? 200,
+      });
     }
     async json(): Promise<unknown> {
       return this._json;
