@@ -205,15 +205,25 @@ export function SocialGraph() {
 
   const handleEdgeClick = useCallback(
     (edge: LinkObject<GraphNode, { source: string; target: string }>) => {
-      const sourceNode = graphData.nodes.find((n) => n.id === edge.source);
-      const targetNode = graphData.nodes.find((n) => n.id === edge.target);
+      const sourceId =
+        typeof edge.source === "object"
+          ? (edge.source as GraphNode).id
+          : edge.source;
+      const targetId =
+        typeof edge.target === "object"
+          ? (edge.target as GraphNode).id
+          : edge.target;
+      const sourceNode = graphData.nodes.find((n) => n.id === sourceId);
+      const targetNode = graphData.nodes.find((n) => n.id === targetId);
+
       if (sourceNode && targetNode) {
         setSelectedEdge({
-          source: edge.source as string,
-          target: edge.target as string,
+          source: sourceId,
+          target: targetId,
           sourceName: sourceNode.label,
           targetName: targetNode.label,
         });
+
         setDeleteDialogOpen(true);
       }
     },
@@ -275,9 +285,11 @@ export function SocialGraph() {
           if (n.id === hoveredNodeId) return "#38bdf8"; // sky-400
           return "#7dd3fc"; // sky-300
         }}
-        linkColor={() => "#64748b"} // slate-500
+        linkColor={() => "#94a3b8"} // slate-400
         nodeRelSize={6}
-        linkWidth={1}
+        linkWidth={2}
+        // linkDirectionalParticles={2}
+        // linkDirectionalParticleWidth={2}
         onNodeClick={handleNodeClick}
         onNodeHover={handleNodeHover}
         onLinkClick={handleEdgeClick}
