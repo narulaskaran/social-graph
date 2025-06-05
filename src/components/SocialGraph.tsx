@@ -31,8 +31,13 @@ interface ApiProfile {
 export function SocialGraph() {
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [draggedNode, setDraggedNode] = useState<{ id: string } | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [lastDraggedNode, setLastDraggedNode] = useState<{ id: string } | null>(
+    null
+  );
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["graph"],
     queryFn: async () => {
       const res = await fetch("/api/graph");
@@ -97,6 +102,49 @@ export function SocialGraph() {
     }
   };
 
+  const handleNodeDrag = (
+    node: { id: string },
+    translate: { x: number; y: number }
+  ) => {
+    if (!isDragging) {
+      setDraggedNode(node);
+      setIsDragging(true);
+      setLastDraggedNode(node);
+    } else if (lastDraggedNode && lastDraggedNode.id !== node.id) {
+      // Node was dragged to a different node
+      handleConnectionCreate(lastDraggedNode, node);
+    }
+  };
+
+  const handleConnectionCreate = async (
+    source: { id: string },
+    target: { id: string }
+  ) => {
+    try {
+      const res = await fetch("/api/connections", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          source: source.id,
+          target: target.id,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to create connection");
+      }
+
+      // Refresh graph data
+      await refetch();
+    } catch (err) {
+      console.error("Error creating connection:", err);
+    } finally {
+      setDraggedNode(null);
+      setIsDragging(false);
+      setLastDraggedNode(null);
+    }
+  };
+
   return (
     <div className="w-full h-full">
       <ForceGraph2D
@@ -135,12 +183,21 @@ export function SocialGraph() {
           ctx.fillText(label, node.x!, node.y! + 10);
         }}
         onNodeClick={handleNodeClick}
+        onNodeDrag={handleNodeDrag}
+        nodeRelSize={6}
+        linkDirectionalParticles={2}
+        linkDirectionalParticleSpeed={0.005}
       />
       <ProfileModal
         profile={selectedProfile}
         open={modalOpen}
         onOpenChange={setModalOpen}
       />
+      {isDragging && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-4 py-2 rounded shadow">
+          Drag to another node to create a connection
+        </div>
+      )}
     </div>
   );
 }
