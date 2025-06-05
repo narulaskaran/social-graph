@@ -4,24 +4,24 @@ import { prisma } from "@/lib/prisma";
 import { Request as NodeFetchRequest } from "node-fetch";
 
 if (typeof global.Request === "undefined") {
-  // @ts-expect-error
+  // @ts-expect-error: Node.js test env does not have global.Request
   global.Request = NodeFetchRequest;
 }
 
 // Polyfill Response for Node test environment
 if (typeof global.Response === "undefined") {
-  // @ts-expect-error
+  // @ts-expect-error: Node.js test env does not have global.Response
   global.Response = class {
     status: number;
-    _json: unknown;
-    constructor(body: unknown, init: { status: number }) {
+    _json: any;
+    constructor(body: any, init: { status: number }) {
       this._json = body;
       this.status = init.status;
     }
-    static json(body: unknown, init: { status?: number } = {}) {
+    static json(body: any, init: { status?: number } = {}) {
       return new global.Response(body, { status: init.status ?? 200 });
     }
-    async json(): Promise<unknown> {
+    async json(): Promise<any> {
       return this._json;
     }
   };
