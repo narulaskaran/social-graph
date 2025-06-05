@@ -8,20 +8,21 @@ if (typeof global.Request === "undefined") {
   global.Request = NodeFetchRequest;
 }
 
-// Polyfill Response for Node test environment
+// Polyfill Response for Node test environment (test-only mock, not a real Response)
 if (typeof global.Response === "undefined") {
-  // @ts-expect-error: Node.js test env does not have global.Response
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment, @typescript-eslint/no-explicit-any
+  // @ts-expect-error: test-only mock for global.Response
   global.Response = class {
     status: number;
-    _json: any;
-    constructor(body: any, init: { status: number }) {
+    _json: unknown;
+    constructor(body: unknown, init: { status: number }) {
       this._json = body;
       this.status = init.status;
     }
-    static json(body: any, init: { status?: number } = {}) {
-      return new global.Response(body, { status: init.status ?? 200 });
+    static json(body: unknown, init: { status?: number } = {}) {
+      return new global.Response(body as any, { status: init.status ?? 200 });
     }
-    async json(): Promise<any> {
+    async json(): Promise<unknown> {
       return this._json;
     }
   };
