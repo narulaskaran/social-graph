@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { POST } from "./route";
 import { prisma } from "@/lib/prisma";
 // Polyfill Request for Node test environment
