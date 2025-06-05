@@ -10,7 +10,10 @@ jest.mock("react-force-graph-2d", () => {
   return function MockForceGraph({
     onNodeDrag,
   }: {
-    onNodeDrag: (node: any, translate: any) => void;
+    onNodeDrag: (
+      node: { id: string },
+      translate: { x: number; y: number }
+    ) => void;
   }) {
     return (
       <div data-testid="force-graph">
@@ -58,7 +61,7 @@ describe("SocialGraph", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (global.fetch as jest.Mock).mockImplementation((url) => {
+    (global.fetch as jest.Mock).mockImplementation((url: string) => {
       if (url === "/api/graph") {
         return Promise.resolve({
           ok: true,

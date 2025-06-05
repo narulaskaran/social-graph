@@ -1,27 +1,27 @@
 import { POST } from "./route";
 import { prisma } from "@/lib/prisma";
 // Polyfill Request for Node test environment
-import fetch, { Request as NodeFetchRequest } from "node-fetch";
+import { Request as NodeFetchRequest } from "node-fetch";
 
 if (typeof global.Request === "undefined") {
-  // @ts-ignore
+  // @ts-expect-error
   global.Request = NodeFetchRequest;
 }
 
 // Polyfill Response for Node test environment
 if (typeof global.Response === "undefined") {
-  // @ts-ignore
+  // @ts-expect-error
   global.Response = class {
     status: number;
-    _json: any;
-    constructor(body: any, init: { status: number }) {
+    _json: unknown;
+    constructor(body: unknown, init: { status: number }) {
       this._json = body;
       this.status = init.status;
     }
-    static json(body: any, init: { status?: number } = {}) {
+    static json(body: unknown, init: { status?: number } = {}) {
       return new global.Response(body, { status: init.status ?? 200 });
     }
-    async json() {
+    async json(): Promise<unknown> {
       return this._json;
     }
   };

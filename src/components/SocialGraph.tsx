@@ -31,7 +31,6 @@ interface ApiProfile {
 export function SocialGraph() {
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [draggedNode, setDraggedNode] = useState<{ id: string } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [lastDraggedNode, setLastDraggedNode] = useState<{ id: string } | null>(
     null
@@ -102,12 +101,8 @@ export function SocialGraph() {
     }
   };
 
-  const handleNodeDrag = (
-    node: { id: string },
-    translate: { x: number; y: number }
-  ) => {
+  const handleNodeDrag = (node: { id: string }) => {
     if (!isDragging) {
-      setDraggedNode(node);
       setIsDragging(true);
       setLastDraggedNode(node);
     } else if (lastDraggedNode && lastDraggedNode.id !== node.id) {
@@ -139,7 +134,6 @@ export function SocialGraph() {
     } catch (err) {
       console.error("Error creating connection:", err);
     } finally {
-      setDraggedNode(null);
       setIsDragging(false);
       setLastDraggedNode(null);
     }
