@@ -1,3 +1,4 @@
+import { handleError } from "@/lib/errors";
 import { prisma } from "@/lib/prisma";
 
 export async function GET() {
@@ -20,10 +21,6 @@ export async function GET() {
       connections,
     });
   } catch (err) {
-    console.error("API /api/graph error:", err);
-    return Response.json(
-      { error: "Database error", details: String(err) },
-      { status: 500 }
-    );
+    return handleError(err);
   }
 }

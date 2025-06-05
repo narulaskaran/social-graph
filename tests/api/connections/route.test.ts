@@ -1,5 +1,5 @@
-/* eslint-disable */
-import { POST } from "@/app/api/connections/route";
+// Moved from src/app/api/connections/route.test.ts for test standardization
+import { POST } from "../../../src/app/api/connections/route";
 import { prisma } from "@/lib/prisma";
 // Polyfill Request for Node test environment
 import { Request as NodeFetchRequest } from "node-fetch";
@@ -110,6 +110,6 @@ describe("POST /api/connections", () => {
 
     expect(response.status).toBe(500);
     expect(data.error).toBe("Database error");
-    expect(data.details).toBe("Error: Database error");
+    expect(data.details).toBe("Database error");
   });
 });

@@ -1,4 +1,8 @@
-import { upsertProfile, upsertConnection } from "./helpers";
+// Moved from src/app/api/add/route.test.ts for test standardization
+import {
+  upsertProfile,
+  upsertConnection,
+} from "../../../src/app/api/add/helpers";
 import { prisma } from "@/lib/prisma";
 
 jest.mock("@/lib/prisma", () => ({

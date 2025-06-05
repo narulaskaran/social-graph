@@ -73,6 +73,15 @@ export function LinkedInUrlInput({
     return () => observer.disconnect();
   }, []);
 
+  // LinkedIn profile URL validation
+  const linkedInProfileRegex =
+    /^https:\/\/([a-z]{2,3}\.)?linkedin\.com\/in\/[A-Za-z0-9\-_%]+\/?$/i;
+  const isValid = value === "" || linkedInProfileRegex.test(value);
+  const errorText =
+    !isValid && value !== ""
+      ? "Please enter a valid LinkedIn profile URL (e.g. https://www.linkedin.com/in/username)"
+      : undefined;
+
   return (
     <ThemeProvider theme={muiTheme}>
       <Autocomplete
@@ -127,6 +136,8 @@ export function LinkedInUrlInput({
             variant="outlined"
             size="small"
             fullWidth
+            error={!isValid && value !== ""}
+            helperText={errorText}
           />
         )}
       />
