@@ -130,4 +130,17 @@ Next: Frontend graph visualization, add-to-network modal, dark/light mode toggle
 - Updated jest.config.js to support TypeScript path aliases (moduleNameMapper)
 - All tests pass
 
+## Local Development with SQLite
+
+- Local development now uses a SQLite database by default.
+- The `npm run dev` command automatically:
+  - Switches the Prisma schema to SQLite (temporarily)
+  - Creates and migrates a local SQLite database (`prisma/dev.db`)
+  - Seeds the database with example data
+  - Starts the dev server
+  - Restores the original schema after stopping
+- Local migrations/data are resettable and do not affect production or CI.
+- The SQLite database file is gitignored.
+- All these changes are being developed in the `chore/local-sqlite-dev` branch.
+
 // Pick up from here for future work!
