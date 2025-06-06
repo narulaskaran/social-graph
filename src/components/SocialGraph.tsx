@@ -1,6 +1,7 @@
 "use client";
 
 import { DeleteConnectionDialog } from "./DeleteConnectionDialog";
+import { NodeSearch } from "./NodeSearch";
 import { ProfileModal } from "./ProfileModal";
 import { useQuery } from "@tanstack/react-query";
 import React, {
@@ -40,11 +41,17 @@ interface GraphNode {
   label: string;
   x?: number;
   y?: number;
+  tier?: number; // 0: selected, 1: direct connection, 2: indirect connection, 3: other
+}
+
+interface GraphLink {
+  source: string;
+  target: string;
 }
 
 interface GraphData {
   nodes: GraphNode[];
-  links: { source: string; target: string }[];
+  links: GraphLink[];
 }
 
 export function SocialGraph() {
@@ -102,13 +109,60 @@ export function SocialGraph() {
     const nodes = (queryData.profiles as ApiProfile[]).map((p) => ({
       id: p.linkedin_username,
       label: `${p.first_name} ${p.last_name}`,
+      tier: 3, // Default tier
     }));
     const links = (queryData.connections as Connection[]).map((c) => ({
       source: c.profile_a,
       target: c.profile_b,
     }));
+
+    // Update node tiers based on selected node
+    if (selectedNodeId) {
+      // Find direct connections (T1)
+      const directConnections = new Set<string>();
+      links.forEach((link) => {
+        if (link.source === selectedNodeId) {
+          directConnections.add(link.target);
+        } else if (link.target === selectedNodeId) {
+          directConnections.add(link.source);
+        }
+      });
+
+      // Find indirect connections (T2)
+      const indirectConnections = new Set<string>();
+      links.forEach((link) => {
+        if (
+          directConnections.has(link.source) &&
+          !directConnections.has(link.target) &&
+          link.target !== selectedNodeId
+        ) {
+          indirectConnections.add(link.target);
+        }
+        if (
+          directConnections.has(link.target) &&
+          !directConnections.has(link.source) &&
+          link.source !== selectedNodeId
+        ) {
+          indirectConnections.add(link.source);
+        }
+      });
+
+      // Update node tiers
+      nodes.forEach((node) => {
+        if (node.id === selectedNodeId) {
+          node.tier = 0;
+        } else if (directConnections.has(node.id)) {
+          node.tier = 1;
+        } else if (indirectConnections.has(node.id)) {
+          node.tier = 2;
+        } else {
+          node.tier = 3;
+        }
+      });
+    }
+
     return { nodes, links };
-  }, [queryData]);
+  }, [queryData, selectedNodeId]);
 
   const handleConnectionCreate = useCallback(
     async (fromNode: { id: string }, toNode: { id: string }) => {
@@ -252,6 +306,24 @@ export function SocialGraph() {
     }
   }, [selectedEdge, refetch]);
 
+  const handleNodeSelect = useCallback(
+    (node: { id: string; label: string }) => {
+      setSelectedNodeId(node.id);
+      if (fgRef.current) {
+        const graphNode = graphData.nodes.find((n) => n.id === node.id);
+        if (
+          graphNode &&
+          typeof graphNode.x === "number" &&
+          typeof graphNode.y === "number"
+        ) {
+          fgRef.current.centerAt(graphNode.x, graphNode.y, 1000);
+          fgRef.current.zoom(2, 1000);
+        }
+      }
+    },
+    [graphData.nodes]
+  );
+
   if (isLoading)
     return (
       <div className="w-full h-full flex items-center justify-center">
@@ -271,9 +343,12 @@ export function SocialGraph() {
       className="w-full h-full"
       data-testid="social-graph"
     >
-      <div className="fixed top-4 left-1/2 -translate-x-1/2 bg-primary/90 text-primary-foreground px-4 py-2 rounded shadow z-10">
-        Click one node, then another to create a connection. Click an edge to
-        delete it.
+      <div className="fixed top-4 left-1/2 -translate-x-1/2 z-10 flex gap-4 items-center">
+        <NodeSearch nodes={graphData.nodes} onSelect={handleNodeSelect} />
+        <div className="bg-primary/90 text-primary-foreground px-4 py-2 rounded shadow">
+          Click one node, then another to create a connection. Click an edge to
+          delete it.
+        </div>
       </div>
       <ForceGraph2D
         ref={fgRef}
@@ -281,15 +356,15 @@ export function SocialGraph() {
         nodeLabel={(node: NodeObject<GraphNode>) => (node as GraphNode).label}
         nodeColor={(node: NodeObject<GraphNode>) => {
           const n = node as GraphNode;
-          if (n.id === selectedNodeId) return "#0ea5e9"; // sky-500
+          if (n.id === selectedNodeId) return "#22c55e"; // green-500
           if (n.id === hoveredNodeId) return "#38bdf8"; // sky-400
+          if (n.tier === 1) return "#eab308"; // yellow-500
+          if (n.tier === 2) return "#ef4444"; // red-500
           return "#7dd3fc"; // sky-300
         }}
         linkColor={() => "#94a3b8"} // slate-400
         nodeRelSize={6}
         linkWidth={2}
-        // linkDirectionalParticles={2}
-        // linkDirectionalParticleWidth={2}
         onNodeClick={handleNodeClick}
         onNodeHover={handleNodeHover}
         onLinkClick={handleEdgeClick}
