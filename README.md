@@ -49,6 +49,23 @@ Build a web application for visualizing social connections as an interactive und
 
 - The project is deployed to Vercel by importing the GitHub repository.
 - The `vercel.json` config file is set up to allow running and testing locally with the `vercel dev` command.
+- **Local Development Database:**
+  - By default, the app uses Neon (PostgreSQL) in production and CI.
+  - For local development, the app now uses a local SQLite database to avoid using Neon resources.
+  - To start the app with a local SQLite database, simply run:
+    ```sh
+    npm run dev
+    ```
+    This will:
+    - Temporarily switch the Prisma schema to SQLite
+    - Create a new SQLite database at `prisma/dev.db`
+    - Apply a fresh migration history (local only)
+    - Seed the database with example data
+    - Start the dev server
+    - Restore the original schema when you stop the server
+  - Local migrations and data are resettable and do not affect production or CI.
+  - The SQLite database file is gitignored.
+  - **Important:** Only commit migrations generated with `provider = "postgresql"`. Do not commit migrations created for SQLite; these are for local use only.
 
 ---
 
