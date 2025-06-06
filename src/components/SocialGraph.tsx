@@ -375,7 +375,6 @@ export function SocialGraph() {
         nodeLabel={(node: NodeObject<GraphNode>) => (node as GraphNode).label}
         nodeColor={(node: NodeObject<GraphNode>) => {
           const n = node as GraphNode;
-          console.log("Coloring node:", n.id, "tier:", n.tier);
           if (n.id === selectedNodeId) return "#22c55e"; // green-500
           if (n.id === hoveredNodeId) return "#38bdf8"; // sky-400
           if (n.tier === 1) return "#eab308"; // yellow-500
@@ -393,27 +392,6 @@ export function SocialGraph() {
           const label = n.label;
           const fontSize = 16 / globalScale;
 
-          // Determine node color based on tier
-          let nodeColor = "#7dd3fc"; // default blue
-          if (n.id === selectedNodeId) {
-            nodeColor = "#22c55e"; // green-500
-          } else if (n.id === hoveredNodeId) {
-            nodeColor = "#38bdf8"; // sky-400
-          } else if (n.tier === 1) {
-            nodeColor = "#eab308"; // yellow-500
-          } else if (n.tier === 2) {
-            nodeColor = "#ef4444"; // red-500
-          }
-
-          // Draw node (circle)
-          ctx.beginPath();
-          ctx.arc(node.x!, node.y!, 8, 0, 2 * Math.PI, false);
-          ctx.fillStyle = nodeColor;
-          ctx.fill();
-          ctx.strokeStyle = "#222";
-          ctx.lineWidth = 1;
-          ctx.stroke();
-
           // Draw label above node
           ctx.font = `${fontSize}px Sans-Serif`;
           ctx.textAlign = "center";
@@ -421,6 +399,7 @@ export function SocialGraph() {
           ctx.fillStyle = "#fff";
           ctx.fillText(label, node.x!, node.y! - 12);
         }}
+        nodeCanvasObjectMode={() => "after"}
       />
       {/* Draw temporary edge if dragging */}
       {edgeCreation.fromNode && edgeCreation.toPosition && (
