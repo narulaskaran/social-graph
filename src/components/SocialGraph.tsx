@@ -328,15 +328,14 @@ export function SocialGraph() {
           typeof graphNode.x === "number" &&
           typeof graphNode.y === "number"
         ) {
-          // First zoom out slightly to show context
-          fgRef.current.zoom(0.5, 500);
-          // Then pan to the node and zoom in
+          // First pan to the node while maintaining current zoom
+          fgRef.current.centerAt(graphNode.x, graphNode.y, 1000);
+          // Then zoom in after the pan is complete
           setTimeout(() => {
             if (fgRef.current) {
-              fgRef.current.centerAt(graphNode.x, graphNode.y, 1000);
               fgRef.current.zoom(2, 1000);
             }
-          }, 500);
+          }, 1000);
         }
       }
     },
