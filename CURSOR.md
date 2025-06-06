@@ -142,5 +142,6 @@ Next: Frontend graph visualization, add-to-network modal, dark/light mode toggle
 - Local migrations/data are resettable and do not affect production or CI.
 - The SQLite database file is gitignored.
 - All these changes are being developed in the `chore/local-sqlite-dev` branch.
+- **Important:** Only commit migrations generated with `provider = "postgresql"`. Do not commit migrations created for SQLite; these are for local use only.
 
 // Pick up from here for future work!

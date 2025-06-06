@@ -65,6 +65,7 @@ Build a web application for visualizing social connections as an interactive und
     - Restore the original schema when you stop the server
   - Local migrations and data are resettable and do not affect production or CI.
   - The SQLite database file is gitignored.
+  - **Important:** Only commit migrations generated with `provider = "postgresql"`. Do not commit migrations created for SQLite; these are for local use only.
 
 ---
 
