@@ -118,6 +118,7 @@ export function SocialGraph() {
 
     // Update node tiers based on selected node
     if (selectedNodeId) {
+      console.log("Selected node:", selectedNodeId);
       // Find direct connections (T1)
       const directConnections = new Set<string>();
       links.forEach((link) => {
@@ -127,6 +128,7 @@ export function SocialGraph() {
           directConnections.add(link.source);
         }
       });
+      console.log("Direct connections:", Array.from(directConnections));
 
       // Find indirect connections (T2)
       const indirectConnections = new Set<string>();
@@ -146,6 +148,7 @@ export function SocialGraph() {
           indirectConnections.add(link.source);
         }
       });
+      console.log("Indirect connections:", Array.from(indirectConnections));
 
       // Update node tiers
       nodes.forEach((node) => {
@@ -159,6 +162,10 @@ export function SocialGraph() {
           node.tier = 3;
         }
       });
+      console.log(
+        "Updated node tiers:",
+        nodes.map((n) => ({ id: n.id, tier: n.tier }))
+      );
     }
 
     return { nodes, links };
@@ -232,6 +239,11 @@ export function SocialGraph() {
         });
       }
       setSelectedNodeId(n.id);
+      // Pan to the selected node
+      if (fgRef.current && typeof n.x === "number" && typeof n.y === "number") {
+        fgRef.current.centerAt(n.x, n.y, 1000);
+        fgRef.current.zoom(2, 1000);
+      }
     } else if (edgeCreation.fromNode && n.id !== edgeCreation.fromNode.id) {
       // Complete edge creation
       handleConnectionCreate(edgeCreation.fromNode, n);
@@ -316,8 +328,15 @@ export function SocialGraph() {
           typeof graphNode.x === "number" &&
           typeof graphNode.y === "number"
         ) {
-          fgRef.current.centerAt(graphNode.x, graphNode.y, 1000);
-          fgRef.current.zoom(2, 1000);
+          // First zoom out slightly to show context
+          fgRef.current.zoom(0.5, 500);
+          // Then pan to the node and zoom in
+          setTimeout(() => {
+            if (fgRef.current) {
+              fgRef.current.centerAt(graphNode.x, graphNode.y, 1000);
+              fgRef.current.zoom(2, 1000);
+            }
+          }, 500);
         }
       }
     },
@@ -356,6 +375,7 @@ export function SocialGraph() {
         nodeLabel={(node: NodeObject<GraphNode>) => (node as GraphNode).label}
         nodeColor={(node: NodeObject<GraphNode>) => {
           const n = node as GraphNode;
+          console.log("Coloring node:", n.id, "tier:", n.tier);
           if (n.id === selectedNodeId) return "#22c55e"; // green-500
           if (n.id === hoveredNodeId) return "#38bdf8"; // sky-400
           if (n.tier === 1) return "#eab308"; // yellow-500
@@ -369,16 +389,31 @@ export function SocialGraph() {
         onNodeHover={handleNodeHover}
         onLinkClick={handleEdgeClick}
         nodeCanvasObject={(node, ctx, globalScale) => {
-          const label = (node as GraphNode).label;
+          const n = node as GraphNode;
+          const label = n.label;
           const fontSize = 16 / globalScale;
+
+          // Determine node color based on tier
+          let nodeColor = "#7dd3fc"; // default blue
+          if (n.id === selectedNodeId) {
+            nodeColor = "#22c55e"; // green-500
+          } else if (n.id === hoveredNodeId) {
+            nodeColor = "#38bdf8"; // sky-400
+          } else if (n.tier === 1) {
+            nodeColor = "#eab308"; // yellow-500
+          } else if (n.tier === 2) {
+            nodeColor = "#ef4444"; // red-500
+          }
+
           // Draw node (circle)
           ctx.beginPath();
           ctx.arc(node.x!, node.y!, 8, 0, 2 * Math.PI, false);
-          ctx.fillStyle = "#7dd3fc"; // or use your nodeColor logic
+          ctx.fillStyle = nodeColor;
           ctx.fill();
           ctx.strokeStyle = "#222";
           ctx.lineWidth = 1;
           ctx.stroke();
+
           // Draw label above node
           ctx.font = `${fontSize}px Sans-Serif`;
           ctx.textAlign = "center";
