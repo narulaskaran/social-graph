@@ -44,5 +44,7 @@ next-env.d.ts
 .env*.local
 pr_body.md
 
-# Prisma local development database
+# Prisma local development database and SQLite migrations
 prisma/dev.db
+prisma/migrations-sqlite/
+prisma/schema.prisma.bak
