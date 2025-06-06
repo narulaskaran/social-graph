@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "cp prisma/schema.prisma prisma/schema.prisma.bak && sed -i '' 's/provider = \"postgresql\"/provider = \"sqlite\"/' prisma/schema.prisma && DATABASE_URL=\"file:./prisma/dev.db\" npx prisma migrate dev --name init && DATABASE_URL=\"file:./prisma/dev.db\" npx prisma db seed && DATABASE_URL=\"file:./prisma/dev.db\" next dev --turbopack; mv prisma/schema.prisma.bak prisma/schema.prisma",
+    "dev": "./dev.sh",
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
