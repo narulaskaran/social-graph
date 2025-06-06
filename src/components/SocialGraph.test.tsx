@@ -5,26 +5,24 @@ import React from "react";
 
 // Mock react-force-graph-2d
 jest.mock("react-force-graph-2d", () => {
-  const React =
-    typeof window !== "undefined"
-      ? window.React
-      : (eval('require("react")') as typeof import("react"));
-  const MockForceGraph = React.forwardRef<unknown, Record<string, unknown>>(
-    (props, ref) => {
-      React.useImperativeHandle(ref, () => ({
-        centerAt: jest.fn(),
-        zoom: jest.fn(),
-        graph2ScreenCoords: jest.fn(),
-        screen2GraphCoords: jest.fn(),
-        d3Force: jest.fn(() => ({ strength: jest.fn(), distance: jest.fn() })),
-      }));
-      return <div data-testid="force-graph" />;
-    }
-  );
+  const React = jest.requireActual("react");
+  const MockForceGraph = (
+    props: Record<string, unknown>,
+    ref: React.Ref<unknown>
+  ) => {
+    React.useImperativeHandle(ref, () => ({
+      centerAt: jest.fn(),
+      zoom: jest.fn(),
+      graph2ScreenCoords: jest.fn(),
+      screen2GraphCoords: jest.fn(),
+      d3Force: jest.fn(() => ({ strength: jest.fn(), distance: jest.fn() })),
+    }));
+    return <div data-testid="force-graph" />;
+  };
   MockForceGraph.displayName = "MockForceGraph";
   return {
     __esModule: true,
-    default: MockForceGraph,
+    default: React.forwardRef(MockForceGraph),
   };
 });
 
