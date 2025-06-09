@@ -56,7 +56,6 @@ interface GraphData {
 
 export function SocialGraph() {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
   const [edgeCreation, setEdgeCreation] = useState<{
@@ -256,11 +255,6 @@ export function SocialGraph() {
     }
   };
 
-  // Node hover logic
-  const handleNodeHover = (node: NodeObject<GraphNode> | null) => {
-    setHoveredNodeId(node ? (node as GraphNode).id : null);
-  };
-
   // Add this useEffect after the ForceGraph2D component (but inside the SocialGraph function)
   useEffect(() => {
     if (fgRef.current) {
@@ -374,29 +368,52 @@ export function SocialGraph() {
         nodeLabel={(node: NodeObject<GraphNode>) => (node as GraphNode).label}
         nodeColor={(node: NodeObject<GraphNode>) => {
           const n = node as GraphNode;
-          if (n.id === selectedNodeId) return "#22c55e"; // green-500
-          if (n.id === hoveredNodeId) return "#38bdf8"; // sky-400
-          if (n.tier === 1) return "#eab308"; // yellow-500
-          if (n.tier === 2) return "#ef4444"; // red-500
-          return "#7dd3fc"; // sky-300
+          if (selectedNodeId === null) {
+            return "oklch(0.443 0.11 240.79)"; // No node selected
+          } else if (n.tier === 0) {
+            return "oklch(0.828 0.111 230.318)"; // Selected node
+          } else if (n.tier === 1) {
+            return "oklch(0.588 0.158 241.966)"; // Directly connected node
+          } else {
+            return "rgba(125, 211, 252, 0.1)"; // Disconnected node
+          }
         }}
-        linkColor={() => "#94a3b8"} // slate-400
+        linkColor={(
+          link: LinkObject<GraphNode, { source: string; target: string }>
+        ) => {
+          const sourceId =
+            typeof link.source === "object"
+              ? (link.source as GraphNode).id
+              : link.source;
+          const targetId =
+            typeof link.target === "object"
+              ? (link.target as GraphNode).id
+              : link.target;
+          return sourceId === selectedNodeId || targetId === selectedNodeId
+            ? "rgba(148, 163, 184, 1)" // slate-400 with full opacity
+            : "rgba(148, 163, 184, 0.5)"; // slate-400 with 50% opacity
+        }}
         nodeRelSize={6}
         linkWidth={2}
         onNodeClick={handleNodeClick}
-        onNodeHover={handleNodeHover}
         onLinkClick={handleEdgeClick}
         nodeCanvasObject={(node, ctx, globalScale) => {
           const n = node as GraphNode;
           const label = n.label;
-          const fontSize = 16 / globalScale;
+          const fontSize = 12 / globalScale;
+          const nodeSize = 7;
+
+          // Draw node
+          ctx.beginPath();
+          ctx.arc(n.x!, n.y!, nodeSize, 0, 2 * Math.PI, false);
+          ctx.fill();
 
           // Draw label above node
           ctx.font = `${fontSize}px Sans-Serif`;
           ctx.textAlign = "center";
           ctx.textBaseline = "bottom";
           ctx.fillStyle = "#fff";
-          ctx.fillText(label, node.x!, node.y! - 12);
+          ctx.fillText(label, n.x!, n.y! - nodeSize - 2);
         }}
         nodeCanvasObjectMode={() => "after"}
       />
