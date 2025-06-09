@@ -9,7 +9,7 @@ interface ConnectionInput {
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const { self, connections } = body;
+  const { self, connections, connectEveryone } = body;
   // self: { linkedin_url, first_name, last_name }
   // connections: [{ linkedin_url, first_name, last_name }, ...]
   if (!self || !self.linkedin_url || !self.first_name || !self.last_name) {
@@ -52,12 +52,32 @@ export async function POST(request: Request) {
     // Upsert connections
     for (const c of connectionUsernames) {
       await upsertProfile(c.linkedin_username, c.first_name, c.last_name);
-      // Insert undirected connection
-      const [a, b] = [selfUsername as string, c.linkedin_username].sort();
-      if (a !== b) {
-        await upsertConnection(a, b);
+    }
+
+    // Create connections either through normal flow or connectEveryone
+    if (connectEveryone) {
+      const allUsernames = [
+        selfUsername,
+        ...connectionUsernames.map((c) => c.linkedin_username),
+      ];
+      for (let i = 0; i < allUsernames.length; i++) {
+        for (let j = i + 1; j < allUsernames.length; j++) {
+          const [a, b] = [allUsernames[i], allUsernames[j]].sort();
+          if (a !== b) {
+            await upsertConnection(a, b);
+          }
+        }
+      }
+    } else {
+      // Normal flow: only connect self to each connection
+      for (const c of connectionUsernames) {
+        const [a, b] = [selfUsername as string, c.linkedin_username].sort();
+        if (a !== b) {
+          await upsertConnection(a, b);
+        }
       }
     }
+
     return Response.json({ success: true });
   } catch (err) {
     return Response.json(
