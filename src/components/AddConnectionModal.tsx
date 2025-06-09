@@ -79,72 +79,102 @@ export function AddConnectionModal({ trigger }: { trigger: React.ReactNode }) {
               <label className="block font-medium" htmlFor="self-linkedin">
                 Your LinkedIn URL
               </label>
-              <LinkedInUrlInput
-                value={self.linkedin_url}
-                onChange={(value) =>
-                  setSelf((s) => ({ ...s, linkedin_url: value }))
-                }
-                placeholder="https://www.linkedin.com/in/your-profile"
-              />
-              <div className="flex gap-2 mt-2">
-                <input
-                  className="flex-1 rounded border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                  required
-                  placeholder="First name"
-                  value={self.first_name}
-                  onChange={(e) =>
-                    setSelf((s) => ({ ...s, first_name: e.target.value }))
+              <div className="flex flex-col gap-2">
+                <LinkedInUrlInput
+                  value={self.linkedin_url}
+                  onChange={(value, profile) =>
+                    setSelf((s) => ({
+                      ...s,
+                      linkedin_url: value,
+                      ...(profile && {
+                        first_name: profile.first_name,
+                        last_name: profile.last_name,
+                      }),
+                    }))
                   }
+                  placeholder="https://www.linkedin.com/in/your-profile"
                 />
-                <input
-                  className="flex-1 rounded border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                  required
-                  placeholder="Last name"
-                  value={self.last_name}
-                  onChange={(e) =>
-                    setSelf((s) => ({ ...s, last_name: e.target.value }))
-                  }
-                />
+                <div className="flex gap-2">
+                  <input
+                    className="flex-1 rounded border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                    required
+                    placeholder="First name"
+                    value={self.first_name}
+                    onChange={(e) =>
+                      setSelf((s) => ({ ...s, first_name: e.target.value }))
+                    }
+                  />
+                  <input
+                    className="flex-1 rounded border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                    required
+                    placeholder="Last name"
+                    value={self.last_name}
+                    onChange={(e) =>
+                      setSelf((s) => ({ ...s, last_name: e.target.value }))
+                    }
+                  />
+                </div>
               </div>
             </div>
             <div className="space-y-2">
               <label className="block font-medium">Connections</label>
               {connections.map((c, idx) => (
-                <div key={idx} className="flex gap-2 items-center mb-2">
+                <div
+                  key={idx}
+                  className="flex flex-col gap-2 mb-4 border rounded-lg p-4 bg-background/50"
+                >
                   <LinkedInUrlInput
                     value={c.linkedin_url}
-                    onChange={(value) =>
-                      handleConnectionChange(idx, "linkedin_url", value)
-                    }
+                    onChange={(value, profile) => {
+                      handleConnectionChange(idx, "linkedin_url", value);
+                      if (profile) {
+                        handleConnectionChange(
+                          idx,
+                          "first_name",
+                          profile.first_name
+                        );
+                        handleConnectionChange(
+                          idx,
+                          "last_name",
+                          profile.last_name
+                        );
+                      }
+                    }}
                     placeholder="LinkedIn URL"
                   />
-                  <input
-                    className="w-32 rounded border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                    required
-                    placeholder="First name"
-                    value={c.first_name}
-                    onChange={(e) =>
-                      handleConnectionChange(idx, "first_name", e.target.value)
-                    }
-                  />
-                  <input
-                    className="w-32 rounded border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                    required
-                    placeholder="Last name"
-                    value={c.last_name}
-                    onChange={(e) =>
-                      handleConnectionChange(idx, "last_name", e.target.value)
-                    }
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    aria-label="Remove connection"
-                    onClick={() => removeConnection(idx)}
-                  >
-                    -
-                  </Button>
+                  <div className="flex gap-2">
+                    <input
+                      className="flex-1 rounded border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                      required
+                      placeholder="First name"
+                      value={c.first_name}
+                      onChange={(e) =>
+                        handleConnectionChange(
+                          idx,
+                          "first_name",
+                          e.target.value
+                        )
+                      }
+                    />
+                    <input
+                      className="flex-1 rounded border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                      required
+                      placeholder="Last name"
+                      value={c.last_name}
+                      onChange={(e) =>
+                        handleConnectionChange(idx, "last_name", e.target.value)
+                      }
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Remove connection"
+                      onClick={() => removeConnection(idx)}
+                    >
+                      -
+                    </Button>
+                  </div>
                 </div>
               ))}
               <Button

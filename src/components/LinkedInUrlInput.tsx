@@ -14,7 +14,7 @@ interface Profile {
 
 interface LinkedInUrlInputProps {
   value: string;
-  onChange: (value: string) => void;
+  onChange: (value: string, profile?: Profile) => void;
   placeholder?: string;
 }
 
@@ -55,6 +55,7 @@ export function LinkedInUrlInput({
   const options = profiles.map((profile) => ({
     label: `${profile.first_name} ${profile.last_name} (${profile.linkedin_username})`,
     url: `https://www.linkedin.com/in/${profile.linkedin_username}`,
+    profile,
   }));
 
   // Local MUI theme switching
@@ -105,7 +106,7 @@ export function LinkedInUrlInput({
           if (typeof newValue === "string") {
             onChange(newValue);
           } else if (newValue && typeof newValue === "object") {
-            onChange(newValue.url);
+            onChange(newValue.url, newValue.profile);
           } else {
             onChange("");
           }
