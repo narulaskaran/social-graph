@@ -1,114 +1,102 @@
-# Social Graph Visualization Web App — Product Requirements Document (PRD)
+# Social Graph Visualization
 
-## Project Overview
-
-Build a web application for visualizing social connections as an interactive undirected graph. The app enables users to explore the entire social network without authentication and allows anyone to add themselves and their connections to the network.
-
----
+This web application provides an interactive visualization of a social network as an undirected graph. It allows for public exploration of the entire network and enables any user to add themselves and their connections.
 
 ## Tech Stack
 
-- **Frontend:** TypeScript, React, [shadcn/ui](https://ui.shadcn.com/) components, Tailwind CSS
-- **Backend:** Vercel serverless functions
-- **Database:** Neon (PostgreSQL), connected via Vercel
-- **Deployment:** Vercel (import from GitHub), with local development using `vercel dev` and a configured `vercel.json` file
+- **Framework**: [Next.js](https://nextjs.org/) (React)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **API**: [Vercel Serverless Functions](https://vercel.com/docs/functions) with API routes
+- **Database**: [Neon](https://neon.tech/) (PostgreSQL) for Production/CI, SQLite for Local Development
+- **ORM**: [Prisma](https://www.prisma.io/)
+- **UI**: [shadcn/ui](https://ui.shadcn.com/), [Tailwind CSS](https://tailwindcss.com/)
+- **Graph Visualization**: [react-force-graph-2d](https://github.com/vasturiano/react-force-graph)
+- **Deployment**: [Vercel](https://vercel.com/)
+- **Testing**: [Jest](https://jestjs.io/), [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/)
 
----
+## Project Structure
 
-## Core Features
+The project follows a `src` directory structure, standard for modern Next.js applications.
 
-- **Graph Visualization:**  
-  The main page displays the social network as an interactive, undirected graph. Each node represents a person, and each edge represents a mutual connection (symmetric tie) between two people. The graph is not overlayed on a map, but rather visualized using a graph library.
+- `src/app/api/`: Contains all backend API routes.
+- `src/app/`: The main application routes and UI pages.
+- `src/components/`: Shared React components.
+- `src/lib/`: Core library functions, including database helpers.
+- `src/utils/`: Shared utility functions.
+- `prisma/`: Contains the Prisma schema (`schema.prisma`), migrations, and seed script.
+- `tests/`: Contains integration and unit tests for the application.
 
-- **Public Access:**  
-  Users can view the entire graph without logging in.
+## Getting Started
 
-- **Add to Network:**  
-  A button labeled "Add to the network" is fixed at the top right. Clicking it opens a modal.
+### Prerequisites
 
-  - In the modal:
-    - Users must provide the LinkedIn profile URL, first name, and last name for themselves.
-    - Below, users can enter LinkedIn URLs, first names, and last names for up to three people they know. A "+" button allows adding more input fields. A "Submit" button sends all entered profiles and connections to the backend.
-    - The backend checks if each LinkedIn URL already exists in the `Profile` table:
-      - If yes, do not create a duplicate entry.
-      - If no, create a new profile with the provided data.
-    - Each connection is stored as an undirected edge (symmetric tie) between two profiles in the graph.
+- [Node.js](https://nodejs.org/en/) (v20 or later)
+- [npm](https://www.npmjs.com/)
 
-- **Database Schema:**
-  - **Profile Table**
-    - `linkedin_url` (Primary Key)
-    - `first_name`
-    - `last_name`
-    - (Optional: `photo_url`, `job_title`, `location`, `last_refreshed`, `staleness_timestamp` for future enrichment)
-  - **Connections Table**
-    - Stores pairs of LinkedIn URLs representing undirected edges between profiles.
-
----
-
-## Deployment & Local Development
-
-- The project is deployed to Vercel by importing the GitHub repository.
-- The `vercel.json` config file is set up to allow running and testing locally with the `vercel dev` command.
-- **Local Development Database:**
-  - By default, the app uses Neon (PostgreSQL) in production and CI.
-  - For local development, the app now uses a local SQLite database to avoid using Neon resources.
-  - To start the app with a local SQLite database, simply run:
-    ```sh
-    npm run dev
-    ```
-    This will:
-    - Temporarily switch the Prisma schema to SQLite
-    - Create a new SQLite database at `prisma/dev.db`
-    - Apply a fresh migration history (local only)
-    - Seed the database with example data
-    - Start the dev server
-    - Restore the original schema when you stop the server
-  - Local migrations and data are resettable and do not affect production or CI.
-  - The SQLite database file is gitignored.
-  - **Important:** Only commit migrations generated with `provider = "postgresql"`. Do not commit migrations created for SQLite; these are for local use only.
-
----
-
-## Additional Notes
-
-- The social graph is modeled as an **undirected graph** to represent symmetric relationships (e.g., mutual acquaintance or friendship). This means if person A lists person B as a connection, it is assumed person B is also connected to person A, and only one edge is created between them[1][2][3].
-- Consider using a graph visualization library such as [D3.js](https://d3js.org/), [Vis.js](https://visjs.org/), or [Force Graph](https://github.com/vasturiano/force-graph) for rendering the network.
-- Ensure the UI is responsive and accessible across devices.
-- No profile data is fetched or scraped from LinkedIn; all information is user-provided.
-
----
-
-# Social Graph
-
-Social network without the features
-
-## Project Setup
-
-1. Clone the repository.
-2. Install dependencies:
-
-   ```sh
-   npm install
-   ```
-
-3. Create a `.env` file in the root directory and add your Neon database credentials:
-
-   ```env
-   DATABASE_URL=your_neon_connection_string
-   ```
-
-## Run
+### 1. Clone the Repository
 
 ```sh
-npm install && npm run build && npm start
+git clone https://github.com/your-username/social-graph.git
+cd social-graph
 ```
+
+### 2. Install Dependencies
+
+```sh
+npm install
+```
+
+### 3. Set Up Environment Variables
+
+For production and CI/CD, you will need a PostgreSQL database.
+
+1.  Create a `.env` file in the project root.
+2.  Add your Neon database connection string to it:
+
+    ```env
+    DATABASE_URL="your_neon_connection_string"
+    ```
+
+## Development
+
+### Local Development (SQLite)
+
+For local development, the project uses a temporary SQLite database to avoid consuming Neon resources. This is handled automatically.
+
+Simply run the dev command:
+
+```sh
+npm run dev
+```
+
+This command executes the `./dev.sh` script, which:
+
+1.  Temporarily switches the Prisma schema to use SQLite.
+2.  Creates a local SQLite database at `prisma/dev.db`.
+3.  Applies the database schema and seeds it with initial data.
+4.  Starts the Next.js development server.
+5.  Restores the original PostgreSQL schema when the server is stopped.
+
+The local SQLite database is ignored by Git.
 
 ## Testing
 
-- Tests are run automatically on push and PR via GitHub Actions.
-- To run tests locally:
-  - `npm run test`
+The project uses Jest and React Testing Library for testing. Test files are located in the `tests/` directory and alongside the source files with a `.test.ts(x)` extension.
 
-## Refactor Note
+To run the entire test suite:
 
-- As of [refactor log in CURSOR.md], all code is now in the project root per Vercel best practices.
+```sh
+npm run test
+```
+
+This will automatically generate the Prisma client before running Jest.
+
+## Deployment
+
+The application is configured for seamless deployment to [Vercel](https://vercel.com/).
+
+1.  Push your code to a GitHub repository.
+2.  Import the repository on Vercel.
+3.  Set the `DATABASE_URL` environment variable in the Vercel project settings.
+
+Vercel will automatically build and deploy the application upon each push to the main branch. The `postinstall` script in `package.json` ensures that database migrations are applied during the build process.
