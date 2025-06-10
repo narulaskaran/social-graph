@@ -1,11 +1,18 @@
-import type { Database, Profile, Connection } from "./types";
+import type { Database, Profile, Connection } from "@/lib/db/types";
 
 export class MockDatabase implements Database {
-  private profiles: Map<string, Profile> = new Map();
+  private profiles: Profile[] = [];
   private connections: Connection[] = [];
 
   async upsertProfile(profile: Profile): Promise<void> {
-    this.profiles.set(profile.linkedin_username, { ...profile });
+    const index = this.profiles.findIndex(
+      (p) => p.linkedin_username === profile.linkedin_username
+    );
+    if (index !== -1) {
+      this.profiles[index] = profile;
+    } else {
+      this.profiles.push(profile);
+    }
   }
 
   async upsertProfiles(profiles: Profile[]): Promise<void> {
@@ -15,25 +22,22 @@ export class MockDatabase implements Database {
   }
 
   async getProfile(linkedin_username: string): Promise<Profile | null> {
-    const profile = this.profiles.get(linkedin_username);
-    return profile ? { ...profile } : null;
+    return (
+      this.profiles.find((p) => p.linkedin_username === linkedin_username) ||
+      null
+    );
   }
 
   async getProfiles(): Promise<Profile[]> {
-    return Array.from(this.profiles.values()).map((profile) => ({
-      ...profile,
-    }));
+    return [...this.profiles];
   }
 
   async upsertConnection(connection: Connection): Promise<void> {
     const [a, b] = [connection.profile_a, connection.profile_b].sort();
-    const existingConnection = this.connections.find(
-      (c) =>
-        (c.profile_a === a && c.profile_b === b) ||
-        (c.profile_a === b && c.profile_b === a)
+    const existing = this.connections.find(
+      (c) => c.profile_a === a && c.profile_b === b
     );
-
-    if (!existingConnection) {
+    if (!existing) {
       this.connections.push({ profile_a: a, profile_b: b });
     }
   }
@@ -51,12 +55,24 @@ export class MockDatabase implements Database {
   async deleteConnection(connection: Connection): Promise<void> {
     const [a, b] = [connection.profile_a, connection.profile_b].sort();
     this.connections = this.connections.filter(
-      (c) => !(c.profile_a === a && c.profile_b === b)
+      (c) => c.profile_a !== a || c.profile_b !== b
     );
   }
 
+  async createAllPairwiseConnections(): Promise<void> {
+    const usernames = this.profiles.map((p) => p.linkedin_username);
+    for (let i = 0; i < usernames.length; i++) {
+      for (let j = i + 1; j < usernames.length; j++) {
+        await this.upsertConnection({
+          profile_a: usernames[i],
+          profile_b: usernames[j],
+        });
+      }
+    }
+  }
+
   async clearDatabase(): Promise<void> {
-    this.profiles.clear();
+    this.profiles = [];
     this.connections = [];
   }
 }

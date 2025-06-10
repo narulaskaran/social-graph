@@ -1,30 +1,14 @@
 import "@testing-library/jest-dom";
+
+// This file is run before each test file.
+// It's a good place to set up global mocks.
+
 // Mock Next.js router
-import { useRouter } from "next/router";
+jest.mock("next/router", () => ({
+  useRouter: jest.fn(),
+}));
 
-// Mock PrismaClient
-jest.mock("@prisma/client", () => {
-  const mockPrismaClient = {
-    profile: {
-      upsert: jest.fn(),
-      findUnique: jest.fn(),
-      findMany: jest.fn(),
-    },
-    connections: {
-      upsert: jest.fn(),
-      findMany: jest.fn(),
-      delete: jest.fn(),
-    },
-    $transaction: jest.fn((callback) => callback(mockPrismaClient)),
-  };
-  return {
-    PrismaClient: jest.fn(() => mockPrismaClient),
-  };
-});
-
-// Add Request and Response to global
-// Patch for Next.js API route compatibility
-
+// Add Request and Response to global scope for testing API routes
 global.Request = class Request {
   constructor(url, init) {
     this.url = url;
@@ -50,15 +34,3 @@ global.Response = class Response {
     return new Response(JSON.stringify(obj), init);
   }
 };
-
-jest.mock("next/router", () => ({
-  useRouter: jest.fn(),
-}));
-
-// Mock next/headers
-jest.mock("next/headers", () => ({
-  headers: jest.fn(() => new Map()),
-}));
-
-// Auto-mock the database layer
-jest.mock("@/lib/db");
