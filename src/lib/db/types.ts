@@ -19,7 +19,6 @@ export interface Database {
   // Connection operations
   upsertConnection(connection: Connection): Promise<void>;
   upsertConnections(connections: Connection[]): Promise<void>;
-  createAllPairwiseConnections(usernames: string[]): Promise<void>;
   getConnections(): Promise<Connection[]>;
   deleteConnection(connection: Connection): Promise<void>;
 

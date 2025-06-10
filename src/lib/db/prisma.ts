@@ -74,19 +74,6 @@ export class PrismaDatabase implements Database {
     );
   }
 
-  async createAllPairwiseConnections(usernames: string[]): Promise<void> {
-    const connections: Connection[] = [];
-    for (let i = 0; i < usernames.length; i++) {
-      for (let j = i + 1; j < usernames.length; j++) {
-        const [a, b] = [usernames[i], usernames[j]].sort();
-        if (a !== b) {
-          connections.push({ profile_a: a, profile_b: b });
-        }
-      }
-    }
-    await this.upsertConnections(connections);
-  }
-
   async getConnections(): Promise<Connection[]> {
     return this.prisma.connections.findMany();
   }

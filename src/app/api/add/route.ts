@@ -66,12 +66,19 @@ export async function POST(request: Request) {
     const connectionPairs: { profile_a: string; profile_b: string }[] = [];
 
     if (connectEveryone) {
-      // Create connections between all pairs using the new method
+      // Create connections between all pairs
       const allUsernames = [
         selfUsername,
         ...connectionUsernames.map((c) => c.linkedin_username),
       ];
-      await db.createAllPairwiseConnections(allUsernames);
+      for (let i = 0; i < allUsernames.length; i++) {
+        for (let j = i + 1; j < allUsernames.length; j++) {
+          const [a, b] = [allUsernames[i], allUsernames[j]].sort();
+          if (a !== b) {
+            connectionPairs.push({ profile_a: a, profile_b: b });
+          }
+        }
+      }
     } else {
       // Only connect self to each connection
       for (const c of connectionUsernames) {
@@ -80,9 +87,10 @@ export async function POST(request: Request) {
           connectionPairs.push({ profile_a: a, profile_b: b });
         }
       }
-      // Upsert all connections in a single batch operation
-      await db.upsertConnections(connectionPairs);
     }
+
+    // Upsert all connections in a single batch operation
+    await db.upsertConnections(connectionPairs);
 
     return Response.json({ success: true });
   } catch (err) {
