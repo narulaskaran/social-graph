@@ -126,10 +126,6 @@ describe("SocialGraph", () => {
     });
   });
 
-  it.skip("handles edge deletion", async () => {
-    // Skipped due to dialog not rendering in test environment
-  });
-
   it("handles node selection and coloring", async () => {
     render(
       <QueryClientProvider client={queryClient}>

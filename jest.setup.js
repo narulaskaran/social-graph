@@ -2,6 +2,26 @@ import "@testing-library/jest-dom";
 // Mock Next.js router
 import { useRouter } from "next/router";
 
+// Mock PrismaClient
+jest.mock("@prisma/client", () => {
+  const mockPrismaClient = {
+    profile: {
+      upsert: jest.fn(),
+      findUnique: jest.fn(),
+      findMany: jest.fn(),
+    },
+    connections: {
+      upsert: jest.fn(),
+      findMany: jest.fn(),
+      delete: jest.fn(),
+    },
+    $transaction: jest.fn((callback) => callback(mockPrismaClient)),
+  };
+  return {
+    PrismaClient: jest.fn(() => mockPrismaClient),
+  };
+});
+
 // Add Request and Response to global
 // Patch for Next.js API route compatibility
 

@@ -13,7 +13,25 @@ const customJestConfig = {
     "^@/(.*)$": "<rootDir>/src/$1",
   },
   moduleDirectories: ["node_modules", "<rootDir>/"],
-  testMatch: ["**/*.test.ts", "**/*.test.tsx"],
+  testMatch: [
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/tests/**/*.ts",
+    "**/tests/**/*.tsx",
+  ],
+  transform: {
+    "^.+\\.(ts|tsx)$": [
+      "ts-jest",
+      {
+        tsconfig: "tsconfig.json",
+      },
+    ],
+  },
+  globals: {
+    "ts-jest": {
+      tsconfig: "tsconfig.json",
+    },
+  },
 };
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
