@@ -29,8 +29,8 @@ DATABASE_URL="file:./prisma/dev.db" npx prisma db push --force-reset
 # Regenerate Prisma Client for SQLite
 npx prisma generate
 
-# Seed SQLite DB
-DATABASE_URL="file:./prisma/dev.db" npx prisma db seed
+# Seed SQLite DB using tsconfig-seed.json
+DATABASE_URL="file:./prisma/dev.db" NODE_ENV=development npx ts-node --project tsconfig-seed.json prisma/seed.ts
 
 # Start Next.js dev server
-DATABASE_URL="file:./prisma/dev.db" next dev --turbopack 
+DATABASE_URL="file:./prisma/dev.db" NODE_ENV=development next dev --turbopack 

@@ -1,5 +1,6 @@
 import { extractLinkedInUsername } from "../../../utils/extractLinkedInUsername";
-import { upsertProfile, upsertConnection } from "./helpers";
+import { getDatabase } from "@/lib/db";
+import { handleError } from "@/lib/errors";
 
 interface ConnectionInput {
   linkedin_url: string;
@@ -8,61 +9,91 @@ interface ConnectionInput {
 }
 
 export async function POST(request: Request) {
-  const body = await request.json();
-  const { self, connections } = body;
-  // self: { linkedin_url, first_name, last_name }
-  // connections: [{ linkedin_url, first_name, last_name }, ...]
-  if (!self || !self.linkedin_url || !self.first_name || !self.last_name) {
-    return Response.json(
-      { error: "Missing self profile fields" },
-      { status: 400 }
-    );
-  }
-  if (!Array.isArray(connections)) {
-    return Response.json(
-      { error: "Connections must be an array" },
-      { status: 400 }
-    );
-  }
-
-  const selfUsername = extractLinkedInUsername(self.linkedin_url);
-  if (!selfUsername) {
-    return Response.json(
-      { error: "Invalid self LinkedIn URL" },
-      { status: 400 }
-    );
-  }
-
-  const connectionUsernames = connections
-    .map((c: ConnectionInput) => ({
-      ...c,
-      linkedin_username: extractLinkedInUsername(c.linkedin_url),
-    }))
-    .filter((c) => c.linkedin_username) as (ConnectionInput & {
-    linkedin_username: string;
-  })[];
-
   try {
-    // Upsert self
-    await upsertProfile(
-      selfUsername as string,
-      self.first_name,
-      self.last_name
-    );
-    // Upsert connections
-    for (const c of connectionUsernames) {
-      await upsertProfile(c.linkedin_username, c.first_name, c.last_name);
-      // Insert undirected connection
-      const [a, b] = [selfUsername as string, c.linkedin_username].sort();
-      if (a !== b) {
-        await upsertConnection(a, b);
+    const body = await request.json();
+    const { self, connections, connectEveryone } = body;
+
+    if (!self || !self.linkedin_url || !self.first_name || !self.last_name) {
+      return Response.json(
+        { error: "Missing self profile fields" },
+        { status: 400 }
+      );
+    }
+    if (!Array.isArray(connections)) {
+      return Response.json(
+        { error: "Connections must be an array" },
+        { status: 400 }
+      );
+    }
+
+    const selfUsername = extractLinkedInUsername(self.linkedin_url);
+    if (!selfUsername) {
+      return Response.json(
+        { error: "Invalid self LinkedIn URL" },
+        { status: 400 }
+      );
+    }
+
+    const connectionUsernames = connections
+      .map((c: ConnectionInput) => ({
+        ...c,
+        linkedin_username: extractLinkedInUsername(c.linkedin_url),
+      }))
+      .filter((c) => c.linkedin_username) as (ConnectionInput & {
+      linkedin_username: string;
+    })[];
+
+    const db = getDatabase();
+
+    // Prepare all profiles for bulk upsert
+    const allProfiles = [
+      {
+        linkedin_username: selfUsername,
+        first_name: self.first_name,
+        last_name: self.last_name,
+      },
+      ...connectionUsernames.map((c) => ({
+        linkedin_username: c.linkedin_username,
+        first_name: c.first_name,
+        last_name: c.last_name,
+      })),
+    ];
+
+    // Upsert all profiles in a single batch operation
+    await db.upsertProfiles(allProfiles);
+
+    // Prepare connections based on connectEveryone flag
+    const connectionPairs: { profile_a: string; profile_b: string }[] = [];
+
+    if (connectEveryone) {
+      // Create connections between all pairs
+      const allUsernames = [
+        selfUsername,
+        ...connectionUsernames.map((c) => c.linkedin_username),
+      ];
+      for (let i = 0; i < allUsernames.length; i++) {
+        for (let j = i + 1; j < allUsernames.length; j++) {
+          const [a, b] = [allUsernames[i], allUsernames[j]].sort();
+          if (a !== b) {
+            connectionPairs.push({ profile_a: a, profile_b: b });
+          }
+        }
+      }
+    } else {
+      // Only connect self to each connection
+      for (const c of connectionUsernames) {
+        const [a, b] = [selfUsername, c.linkedin_username].sort();
+        if (a !== b) {
+          connectionPairs.push({ profile_a: a, profile_b: b });
+        }
       }
     }
+
+    // Upsert all connections in a single batch operation
+    await db.upsertConnections(connectionPairs);
+
     return Response.json({ success: true });
   } catch (err) {
-    return Response.json(
-      { error: "Database error", details: String(err) },
-      { status: 500 }
-    );
+    return handleError(err);
   }
 }

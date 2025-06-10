@@ -1,44 +1,22 @@
 export class AppError extends Error {
-  constructor(
-    public message: string,
-    public statusCode: number = 500,
-    public details?: string
-  ) {
+  status: number;
+
+  constructor(message: string, status: number = 500) {
     super(message);
+    this.status = status;
     this.name = "AppError";
   }
 }
 
-export function handleError(error: unknown): Response {
-  console.error("API error:", error);
+export function handleError(error: unknown) {
+  console.error("API Error:", error);
 
   if (error instanceof AppError) {
-    return Response.json(
-      {
-        error: error.message,
-        details: error.details,
-      },
-      { status: error.statusCode }
-    );
+    return Response.json({ error: error.message }, { status: error.status });
   }
 
-  // Handle Prisma errors
-  if (error instanceof Error) {
-    return Response.json(
-      {
-        error: "Database error",
-        details: error.message,
-      },
-      { status: 500 }
-    );
-  }
-
-  // Fallback for unknown errors
   return Response.json(
-    {
-      error: "Internal server error",
-      details: "An unexpected error occurred",
-    },
+    { error: "Internal Server Error", details: String(error) },
     { status: 500 }
   );
 }

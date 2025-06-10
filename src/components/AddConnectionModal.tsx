@@ -26,6 +26,7 @@ export function AddConnectionModal({ trigger }: { trigger: React.ReactNode }) {
   });
   const [connections, setConnections] = React.useState<ConnectionInput[]>([]);
   const [submitting, setSubmitting] = React.useState(false);
+  const [connectEveryone, setConnectEveryone] = React.useState(false);
 
   const handleConnectionChange = (
     idx: number,
@@ -52,13 +53,18 @@ export function AddConnectionModal({ trigger }: { trigger: React.ReactNode }) {
       const res = await fetch("/api/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ self, connections }),
+        body: JSON.stringify({
+          self,
+          connections,
+          connectEveryone,
+        }),
       });
       const result = await res.json();
       console.log(result);
       setOpen(false);
       setSelf({ linkedin_url: "", first_name: "", last_name: "" });
       setConnections([]);
+      setConnectEveryone(false);
     } catch (err) {
       console.error(err);
     } finally {
@@ -185,6 +191,18 @@ export function AddConnectionModal({ trigger }: { trigger: React.ReactNode }) {
               >
                 + Add connection
               </Button>
+              <div className="flex items-center space-x-2 mt-4">
+                <input
+                  type="checkbox"
+                  id="connect-everyone"
+                  checked={connectEveryone}
+                  onChange={(e) => setConnectEveryone(e.target.checked)}
+                  className="rounded border-input bg-background"
+                />
+                <label htmlFor="connect-everyone" className="text-sm">
+                  Connect everyone?
+                </label>
+              </div>
             </div>
           </fieldset>
           <Button

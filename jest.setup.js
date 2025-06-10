@@ -1,8 +1,14 @@
 import "@testing-library/jest-dom";
 
-// Add Request and Response to global
-// Patch for Next.js API route compatibility
+// This file is run before each test file.
+// It's a good place to set up global mocks.
 
+// Mock Next.js router
+jest.mock("next/router", () => ({
+  useRouter: jest.fn(),
+}));
+
+// Add Request and Response to global scope for testing API routes
 global.Request = class Request {
   constructor(url, init) {
     this.url = url;
