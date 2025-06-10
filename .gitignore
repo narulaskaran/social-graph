@@ -48,3 +48,5 @@ pr_body.md
 prisma/dev.db
 prisma/migrations-sqlite/
 prisma/schema.prisma.bak
+prisma/prisma/dev.db-journal
+prisma/prisma/dev.db

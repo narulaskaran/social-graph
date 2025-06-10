@@ -47,7 +47,8 @@ export function LinkedInUrlInput({
     queryFn: async () => {
       const res = await fetch("/api/profiles");
       if (!res.ok) throw new Error("Failed to fetch profiles");
-      return res.json();
+      const data = await res.json();
+      return data.profiles;
     },
   });
 

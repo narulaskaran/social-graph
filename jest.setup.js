@@ -1,4 +1,6 @@
 import "@testing-library/jest-dom";
+// Mock Next.js router
+import { useRouter } from "next/router";
 
 // Add Request and Response to global
 // Patch for Next.js API route compatibility
@@ -28,3 +30,15 @@ global.Response = class Response {
     return new Response(JSON.stringify(obj), init);
   }
 };
+
+jest.mock("next/router", () => ({
+  useRouter: jest.fn(),
+}));
+
+// Mock next/headers
+jest.mock("next/headers", () => ({
+  headers: jest.fn(() => new Map()),
+}));
+
+// Auto-mock the database layer
+jest.mock("@/lib/db");
