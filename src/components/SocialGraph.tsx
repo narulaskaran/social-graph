@@ -391,7 +391,7 @@ export function SocialGraph() {
               : link.target;
           return sourceId === selectedNodeId || targetId === selectedNodeId
             ? "rgba(148, 163, 184, 1)" // slate-400 with full opacity
-            : "rgba(148, 163, 184, 0.5)"; // slate-400 with 50% opacity
+            : "rgba(148, 163, 184, 0.3)"; // slate-400 with 50% opacity
         }}
         nodeRelSize={6}
         linkWidth={2}
