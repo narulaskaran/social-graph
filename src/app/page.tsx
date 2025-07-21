@@ -1,101 +1,104 @@
 "use client";
 
-import { AddConnectionModal } from "../components/AddConnectionModal";
-import { useCreateGraph, GraphProvider } from "../components/GraphProvider";
-import { ReactQueryProvider } from "../components/ReactQueryProvider";
-import { ThemeToggle } from "../components/ThemeToggle";
+import { GraphProvider, useCreateGraph } from "@/components/GraphProvider";
+import { ReactQueryProvider } from "@/components/ReactQueryProvider";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
-import { PlusIcon, ShareIcon, UsersIcon } from "lucide-react";
-import dynamic from "next/dynamic";
+import { PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 
-const SocialGraph = dynamic(
-  () => import("../components/SocialGraph").then((mod) => mod.SocialGraph),
-  {
-    ssr: false,
-  }
-);
-
-function HomePage() {
-  const { createGraph } = useCreateGraph();
-  const [isCreating, setIsCreating] = useState(false);
+function HomePageContent() {
+  const { createGraph, isCreating } = useCreateGraph();
   const router = useRouter();
 
   const handleCreateGraph = async () => {
-    setIsCreating(true);
-    try {
-      const result = await createGraph();
-      // Redirect to the new graph
+    const result = await createGraph();
+    if (result) {
       router.push(`/graph/${result.graph.id}`);
-    } catch (error) {
-      console.error("Failed to create graph:", error);
-    } finally {
-      setIsCreating(false);
     }
   };
 
   return (
-    <main className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="fixed top-0 left-0 right-0 z-20 bg-background/95 backdrop-blur border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <UsersIcon size={24} className="text-primary" />
-              <h1 className="text-xl font-semibold">Social Graph</h1>
-              <ThemeToggle />
-            </div>
-            <div className="flex items-center gap-3">
-              <Button
-                onClick={handleCreateGraph}
-                disabled={isCreating}
-                className="flex items-center gap-2"
-              >
-                <PlusIcon size={16} />
-                {isCreating ? "Creating..." : "Create New Graph"}
-              </Button>
-            </div>{" "}
-          </div>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <div className="fixed top-4 right-4 z-20">
+        <ThemeToggle />
       </div>
 
-      {/* Main Content */}
-      <div className="pt-20">
-        {/* Hero Section */}
-        <div className="container mx-auto px-4 py-12 text-center">
-          <div className="max-w-2xl mx-auto space-y-6">
-            <h2 className="text-3xl font-bold tracking-tight">
-              Create & Share Social Network Graphs
+      <div className="container mx-auto px-4 py-16">
+        <div className="text-center max-w-4xl mx-auto">
+          <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Social Graph Builder
+          </h1>
+          <p className="text-xl text-muted-foreground mb-12 leading-relaxed">
+            Create interactive social network visualizations. Map connections
+            between people, explore relationships, and share your networks with
+            others through unique URLs.
+          </p>
+
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-gray-200/50 dark:border-gray-700/50 mb-16">
+            <h2 className="text-2xl font-semibold mb-4">
+              Ready to start mapping connections?
             </h2>
-            <p className="text-lg text-muted-foreground">
-              Build interactive social network visualizations and share them
-              with unique links. No login required - just create and share!
+            <p className="text-muted-foreground mb-6">
+              Each graph is completely isolated with its own shareable URL.
+              Perfect for different projects, teams, or social circles.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
-              <Button
-                size="lg"
-                onClick={handleCreateGraph}
-                disabled={isCreating}
-                className="flex items-center gap-2"
-              >
-                <PlusIcon size={18} />
-                {isCreating ? "Creating..." : "Create Your Graph"}
-              </Button>
+            <Button
+              onClick={handleCreateGraph}
+              disabled={isCreating}
+              size="lg"
+              className="text-lg px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+            >
+              <PlusIcon size={20} className="mr-3" />
+              {isCreating ? "Creating..." : "Create New Graph"}
+            </Button>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 text-left">
+            <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-6 border border-gray-200/30 dark:border-gray-700/30">
+              <div className="text-blue-600 dark:text-blue-400 text-2xl mb-3">
+                🔗
+              </div>
+              <h3 className="font-semibold mb-2">Easy Connections</h3>
+              <p className="text-sm text-muted-foreground">
+                Simply add names and define relationships. No complex setup
+                required.
+              </p>
+            </div>
+
+            <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-6 border border-gray-200/30 dark:border-gray-700/30">
+              <div className="text-purple-600 dark:text-purple-400 text-2xl mb-3">
+                🎯
+              </div>
+              <h3 className="font-semibold mb-2">Interactive Visualization</h3>
+              <p className="text-sm text-muted-foreground">
+                Drag nodes, zoom, and explore your network in an intuitive
+                interface.
+              </p>
+            </div>
+
+            <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-6 border border-gray-200/30 dark:border-gray-700/30">
+              <div className="text-green-600 dark:text-green-400 text-2xl mb-3">
+                📤
+              </div>
+              <h3 className="font-semibold mb-2">Shareable Links</h3>
+              <p className="text-sm text-muted-foreground">
+                Every graph gets a unique URL that you can share with anyone.
+              </p>
             </div>
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }
 
-export default function Home() {
+export default function HomePage() {
   return (
     <ReactQueryProvider>
       <GraphProvider>
-        <HomePage />
+        <HomePageContent />
       </GraphProvider>
     </ReactQueryProvider>
   );

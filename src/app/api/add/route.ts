@@ -5,11 +5,6 @@ function generateId(): string {
   return Math.random().toString(36).substr(2, 10);
 }
 
-interface ConnectionInput {
-  first_name: string;
-  last_name: string;
-}
-
 export async function POST(request: Request) {
   try {
     const body = await request.json();

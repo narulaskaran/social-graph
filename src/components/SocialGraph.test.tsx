@@ -2,20 +2,49 @@ import "@testing-library/jest-dom";
 import { SocialGraph } from "./SocialGraph";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
+import React from "react";
 
-// Mock ForceGraph2D
-jest.mock("react-force-graph-2d", () => {
-  return function MockForceGraph2D() {
-    return <div data-testid="force-graph" />;
-  };
-});
+// Mock react-force-graph-2d
+interface GraphData {
+  nodes: Array<{ id: string; name: string }>;
+  links: Array<{ source: string; target: string }>;
+}
+
+interface MockForceGraphProps {
+  graphData?: GraphData;
+  nodeId?: string;
+  linkSource?: string;
+  linkTarget?: string;
+  onNodeClick?: (node: { id: string; name: string }) => void;
+  onNodeRightClick?: (node: { id: string; name: string }) => void;
+  [key: string]: unknown;
+}
+
+const MockForceGraph2D = React.forwardRef<HTMLDivElement, MockForceGraphProps>(
+  (props, ref) => {
+    return <div data-testid="force-graph-2d" ref={ref} />;
+  }
+);
+MockForceGraph2D.displayName = "MockForceGraph2D";
+
+jest.mock("react-force-graph-2d", () => ({
+  __esModule: true,
+  default: MockForceGraph2D,
+}));
 
 // Mock the graph query
+const MockQueryComponent = React.memo<{ children: React.ReactNode }>(
+  ({ children }) => {
+    return <div>{children}</div>;
+  }
+);
+MockQueryComponent.displayName = "MockQueryComponent";
+
 global.fetch = jest.fn();
 
 const mockFetch = global.fetch as jest.MockedFunction<typeof fetch>;
 
-const createWrapper = () => {
+const createTestQueryClient = () => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -24,9 +53,16 @@ const createWrapper = () => {
     },
   });
 
-  return ({ children }: { children: React.ReactNode }) => (
+  const TestQueryClientProvider = ({
+    children,
+  }: {
+    children: React.ReactNode;
+  }) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
+  TestQueryClientProvider.displayName = "TestQueryClientProvider";
+
+  return TestQueryClientProvider;
 };
 
 const mockData = {
@@ -63,7 +99,7 @@ afterEach(() => {
 
 describe("SocialGraph", () => {
   it("renders without crashing", async () => {
-    render(<SocialGraph />, { wrapper: createWrapper() });
+    render(<SocialGraph />, { wrapper: createTestQueryClient() });
 
     await waitFor(() => {
       expect(screen.getByTestId("social-graph")).toBeInTheDocument();
@@ -71,7 +107,7 @@ describe("SocialGraph", () => {
   });
 
   it("renders the force graph component", async () => {
-    render(<SocialGraph />, { wrapper: createWrapper() });
+    render(<SocialGraph />, { wrapper: createTestQueryClient() });
 
     await waitFor(() => {
       expect(screen.getByTestId("force-graph")).toBeInTheDocument();

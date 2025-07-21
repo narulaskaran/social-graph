@@ -68,7 +68,7 @@ export class PrismaDatabase implements Database {
     );
   }
 
-  async getProfile(id: string, graph_id: string): Promise<Profile | null> {
+  async getProfile(id: string): Promise<Profile | null> {
     return this.prisma.profile.findUnique({
       where: { id },
     });
@@ -84,21 +84,17 @@ export class PrismaDatabase implements Database {
   }
 
   async upsertConnection(connection: Connection): Promise<void> {
-    const [a, b] = [connection.profile_a_id, connection.profile_b_id].sort();
+    const { profile_a_id, profile_b_id } = connection;
     await this.prisma.connections.upsert({
       where: {
         profile_a_id_profile_b_id_graph_id: {
-          profile_a_id: a,
-          profile_b_id: b,
+          profile_a_id,
+          profile_b_id,
           graph_id: connection.graph_id,
         },
       },
       update: {},
-      create: {
-        profile_a_id: a,
-        profile_b_id: b,
-        graph_id: connection.graph_id,
-      },
+      create: connection,
     });
   }
 
@@ -137,15 +133,26 @@ export class PrismaDatabase implements Database {
     return this.prisma.connections.findMany();
   }
 
-  async deleteConnection(connection: Connection): Promise<void> {
-    const [a, b] = [connection.profile_a_id, connection.profile_b_id].sort();
-    await this.prisma.connections.delete({
+  async deleteConnection(
+    profile_a_id: string,
+    profile_b_id: string,
+    graph_id: string
+  ): Promise<void> {
+    const [a, b] = [profile_a_id, profile_b_id].sort();
+    await this.prisma.connections.deleteMany({
       where: {
-        profile_a_id_profile_b_id_graph_id: {
-          profile_a_id: a,
-          profile_b_id: b,
-          graph_id: connection.graph_id,
-        },
+        OR: [
+          {
+            profile_a_id: a,
+            profile_b_id: b,
+            graph_id,
+          },
+          {
+            profile_a_id: b,
+            profile_b_id: a,
+            graph_id,
+          },
+        ],
       },
     });
   }

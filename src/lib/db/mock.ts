@@ -83,19 +83,19 @@ export class MockDatabase implements Database {
     return this.connections.filter((c) => c.graph_id === graph_id);
   }
 
-  async deleteConnection(connection: {
-    profile_a_id: string;
-    profile_b_id: string;
-    graph_id: string;
-  }): Promise<void> {
+  async deleteConnection(
+    profile_a_id: string,
+    profile_b_id: string,
+    graph_id: string
+  ): Promise<void> {
     this.connections = this.connections.filter(
       (c) =>
         !(
-          ((c.profile_a_id === connection.profile_a_id &&
-            c.profile_b_id === connection.profile_b_id) ||
-            (c.profile_a_id === connection.profile_b_id &&
-              c.profile_b_id === connection.profile_a_id)) &&
-          c.graph_id === connection.graph_id
+          ((c.profile_a_id === profile_a_id &&
+            c.profile_b_id === profile_b_id) ||
+            (c.profile_a_id === profile_b_id &&
+              c.profile_b_id === profile_a_id)) &&
+          c.graph_id === graph_id
         )
     );
   }

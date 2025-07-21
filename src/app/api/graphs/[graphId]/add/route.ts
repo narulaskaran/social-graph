@@ -6,17 +6,12 @@ function generateId(): string {
   return Math.random().toString(36).substr(2, 10);
 }
 
-interface ConnectionInput {
-  first_name: string;
-  last_name: string;
-}
-
 export async function POST(
   request: Request,
-  { params }: { params: { graphId: string } }
+  { params }: { params: Promise<{ graphId: string }> }
 ) {
   try {
-    const { graphId } = params;
+    const { graphId } = await params;
     const body = await request.json();
     const { self, connections, connectEveryone } = body;
 

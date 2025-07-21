@@ -58,7 +58,12 @@ export function useGraph() {
 
 // Hook for creating a new graph
 export function useCreateGraph() {
-  const { setIsCreatingGraph, setCurrentGraphId, setCurrentGraph } = useGraph();
+  const {
+    setIsCreatingGraph,
+    setCurrentGraphId,
+    setCurrentGraph,
+    isCreatingGraph,
+  } = useGraph();
 
   const createGraph = async () => {
     setIsCreatingGraph(true);
@@ -90,5 +95,8 @@ export function useCreateGraph() {
     }
   };
 
-  return { createGraph };
+  return {
+    createGraph,
+    isCreating: isCreatingGraph,
+  };
 }

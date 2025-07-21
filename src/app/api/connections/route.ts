@@ -1,6 +1,4 @@
 import { getDatabase } from "@/lib/db";
-import { AppError, handleError } from "@/lib/errors";
-import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
@@ -57,18 +55,11 @@ export async function DELETE(request: Request) {
     }
 
     const db = getDatabase();
-    await db.deleteConnection({
-      profile_a_id: source,
-      profile_b_id: target,
-      graph_id: "default",
-    });
+    await db.deleteConnection(source, target, "default");
 
     return Response.json({ success: true });
   } catch (error) {
     console.error("Error deleting connection:", error);
-    return Response.json(
-      { error: "Failed to delete connection" },
-      { status: 500 }
-    );
+    return Response.json({ error: "Internal server error" }, { status: 500 });
   }
 }

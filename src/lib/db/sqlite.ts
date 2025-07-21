@@ -2,6 +2,17 @@ import { createGraphId } from "../../utils/graphId";
 import type { Database, Profile, Connection, Graph } from "./types";
 import SQLiteDB from "better-sqlite3";
 
+interface SQLiteRunResult {
+  changes: number;
+  lastInsertRowid: number;
+}
+
+interface SQLiteGraphResult {
+  id: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export class SQLiteDatabase implements Database {
   private db: SQLiteDB.Database;
 
@@ -62,7 +73,7 @@ export class SQLiteDatabase implements Database {
       FROM graphs
       WHERE id = ?
     `);
-    const result = stmt.get(id) as any;
+    const result = stmt.get(id) as SQLiteGraphResult | undefined;
     if (!result) return null;
 
     return {
@@ -83,17 +94,20 @@ export class SQLiteDatabase implements Database {
     const stmt = this.db.prepare(`
       INSERT INTO profiles (id, first_name, last_name, graph_id)
       VALUES (?, ?, ?, ?)
-      ON CONFLICT(id) DO UPDATE SET
-        first_name = excluded.first_name,
-        last_name = excluded.last_name,
-        graph_id = excluded.graph_id
+      ON CONFLICT(first_name, last_name, graph_id) DO UPDATE SET
+        id = excluded.id
     `);
-    stmt.run(
+
+    const result = stmt.run(
       profile.id,
       profile.first_name,
       profile.last_name,
       profile.graph_id
-    );
+    ) as SQLiteRunResult;
+
+    if (result.changes === 0) {
+      throw new Error("Failed to upsert profile");
+    }
   }
 
   async upsertProfiles(profiles: Profile[]): Promise<void> {
@@ -120,13 +134,12 @@ export class SQLiteDatabase implements Database {
     transaction(profiles);
   }
 
-  async getProfile(id: string, graph_id: string): Promise<Profile | null> {
-    const stmt = this.db.prepare(`
-      SELECT id, first_name, last_name, graph_id
-      FROM profiles
-      WHERE id = ? AND graph_id = ?
-    `);
-    return stmt.get(id, graph_id) as Profile | null;
+  async getProfile(id: string): Promise<Profile | null> {
+    const stmt = this.db.prepare(
+      "SELECT id, first_name, last_name, graph_id FROM profiles WHERE id = ?"
+    );
+    const profile = stmt.get(id) as Profile | undefined;
+    return profile || null;
   }
 
   async getProfiles(graph_id?: string): Promise<Profile[]> {
@@ -193,13 +206,18 @@ export class SQLiteDatabase implements Database {
     return stmt.all() as Connection[];
   }
 
-  async deleteConnection(connection: Connection): Promise<void> {
-    const [a, b] = [connection.profile_a_id, connection.profile_b_id].sort();
+  async deleteConnection(
+    profile_a_id: string,
+    profile_b_id: string,
+    graph_id: string
+  ): Promise<void> {
+    const [a, b] = [profile_a_id, profile_b_id].sort();
     const stmt = this.db.prepare(`
       DELETE FROM connections
-      WHERE profile_a_id = ? AND profile_b_id = ? AND graph_id = ?
+      WHERE ((profile_a_id = ? AND profile_b_id = ?) OR (profile_a_id = ? AND profile_b_id = ?))
+      AND graph_id = ?
     `);
-    stmt.run(a, b, connection.graph_id);
+    stmt.run(a, b, b, a, graph_id);
   }
 
   async clearDatabase(): Promise<void> {

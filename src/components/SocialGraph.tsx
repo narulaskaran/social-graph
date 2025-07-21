@@ -2,7 +2,6 @@
 
 import { DeleteConnectionDialog } from "./DeleteConnectionDialog";
 import { NodeSearch } from "./NodeSearch";
-import { ProfileModal } from "./ProfileModal";
 import { useQuery } from "@tanstack/react-query";
 import React, {
   useMemo,
@@ -17,12 +16,6 @@ import type {
   ForceGraphMethods,
   LinkObject,
 } from "react-force-graph-2d";
-
-interface Profile {
-  id: string;
-  firstName: string;
-  lastName: string;
-}
 
 interface Connection {
   profile_a_id: string;
@@ -55,13 +48,11 @@ interface GraphData {
 
 export function SocialGraph({ graphId }: { graphId?: string }) {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
   const [edgeCreation, setEdgeCreation] = useState<{
     fromNode: { id: string; x: number; y: number } | null;
     toPosition: { x: number; y: number } | null;
   }>({ fromNode: null, toPosition: null });
-  const [selectedProfile] = useState<Profile | null>(null);
   const fgRef = useRef<
     | ForceGraphMethods<
         NodeObject<GraphNode>,
@@ -466,13 +457,6 @@ export function SocialGraph({ graphId }: { graphId?: string }) {
             strokeWidth={2}
           />
         </svg>
-      )}
-      {selectedProfile && (
-        <ProfileModal
-          profile={selectedProfile}
-          open={modalOpen}
-          onOpenChange={setModalOpen}
-        />
       )}
       {selectedEdge && (
         <DeleteConnectionDialog

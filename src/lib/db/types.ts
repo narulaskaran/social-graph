@@ -26,15 +26,19 @@ export interface Database {
   // Profile operations
   upsertProfile(profile: Profile): Promise<void>;
   upsertProfiles(profiles: Profile[]): Promise<void>;
-  getProfile(id: string, graph_id: string): Promise<Profile | null>;
+  getProfile(id: string): Promise<Profile | null>;
   getProfiles(graph_id?: string): Promise<Profile[]>;
 
   // Connection operations
   upsertConnection(connection: Connection): Promise<void>;
   upsertConnections(connections: Connection[]): Promise<void>;
   getConnections(graph_id?: string): Promise<Connection[]>;
-  deleteConnection(connection: Connection): Promise<void>;
+  deleteConnection(
+    profile_a_id: string,
+    profile_b_id: string,
+    graph_id: string
+  ): Promise<void>;
 
-  // Additional operations
+  // Utility operations
   clearDatabase(): Promise<void>;
 }

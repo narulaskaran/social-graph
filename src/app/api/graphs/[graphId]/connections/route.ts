@@ -5,10 +5,10 @@ import { NextResponse } from "next/server";
 
 export async function POST(
   request: Request,
-  { params }: { params: { graphId: string } }
+  { params }: { params: Promise<{ graphId: string }> }
 ) {
   try {
-    const { graphId } = params;
+    const { graphId } = await params;
     const { source, target } = await request.json();
 
     // Validate graph ID format
@@ -29,6 +29,7 @@ export async function POST(
       throw new AppError("Graph not found", 404);
     }
 
+    // Create the connection
     await db.upsertConnection({
       profile_a_id: source,
       profile_b_id: target,
@@ -36,17 +37,17 @@ export async function POST(
     });
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    return handleError(error);
+  } catch (err) {
+    return handleError(err);
   }
 }
 
 export async function GET(
   request: Request,
-  { params }: { params: { graphId: string } }
+  { params }: { params: Promise<{ graphId: string }> }
 ) {
   try {
-    const { graphId } = params;
+    const { graphId } = await params;
 
     // Validate graph ID format
     if (!isValidGraphId(graphId)) {
@@ -62,18 +63,18 @@ export async function GET(
     }
 
     const connections = await db.getConnections(graphId);
-    return Response.json({ connections });
-  } catch (error) {
-    return handleError(error);
+    return NextResponse.json(connections);
+  } catch (err) {
+    return handleError(err);
   }
 }
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { graphId: string } }
+  { params }: { params: Promise<{ graphId: string }> }
 ) {
   try {
-    const { graphId } = params;
+    const { graphId } = await params;
     const { source, target } = await request.json();
 
     // Validate graph ID format
@@ -81,6 +82,7 @@ export async function DELETE(
       throw new AppError("Invalid graph ID format", 400);
     }
 
+    // Validate input
     if (!source || !target) {
       throw new AppError("Source and target are required", 400);
     }
@@ -93,14 +95,11 @@ export async function DELETE(
       throw new AppError("Graph not found", 404);
     }
 
-    await db.deleteConnection({
-      profile_a_id: source,
-      profile_b_id: target,
-      graph_id: graphId,
-    });
+    // Delete the connection
+    await db.deleteConnection(source, target, graphId);
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    return handleError(error);
+  } catch (err) {
+    return handleError(err);
   }
 }

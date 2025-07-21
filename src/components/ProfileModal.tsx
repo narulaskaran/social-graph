@@ -6,14 +6,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import type { Profile } from "@/lib/db/types";
 import * as React from "react";
-
-interface Profile {
-  id: string;
-  firstName: string;
-  lastName: string;
-  linkedinUrl: string;
-}
 
 interface ProfileModalProps {
   profile: Profile | null;
@@ -30,25 +24,21 @@ export function ProfileModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md w-full">
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Profile</DialogTitle>
+          <DialogTitle>Profile Details</DialogTitle>
         </DialogHeader>
+
         <div className="space-y-4">
           <div>
             <h3 className="text-lg font-semibold">
-              {profile.firstName} {profile.lastName}
+              {profile.first_name} {profile.last_name}
             </h3>
           </div>
-          <div>
-            <a
-              href={profile.linkedinUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary hover:underline"
-            >
-              View LinkedIn Profile
-            </a>
+
+          <div className="text-sm text-muted-foreground">
+            <p>ID: {profile.id}</p>
+            <p>Graph: {profile.graph_id}</p>
           </div>
         </div>
       </DialogContent>
