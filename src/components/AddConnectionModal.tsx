@@ -8,18 +8,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Profile } from "@/lib/db/types";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronDown } from "lucide-react";
 import React, { useState, useEffect } from "react";
+
+interface ConnectionInput {
+  first_name: string;
+  last_name: string;
+}
 
 interface AddConnectionModalProps {
   isOpen: boolean;
@@ -35,8 +33,8 @@ export default function AddConnectionModal({
   const [firstNameValue, setFirstNameValue] = useState("");
   const [lastNameValue, setLastNameValue] = useState("");
   const [inputValue, setInputValue] = useState("");
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [selectedConnections, setSelectedConnections] = useState<Profile[]>([]);
+
+  const [connections, setConnections] = useState<ConnectionInput[]>([]);
   const [connectEveryone, setConnectEveryone] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -62,10 +60,26 @@ export default function AddConnectionModal({
     return fullName.includes(inputValue.toLowerCase()) && inputValue.length > 0;
   });
 
+  // Helper functions for managing connections
+  const handleConnectionChange = (
+    idx: number,
+    field: keyof ConnectionInput,
+    value: string
+  ) => {
+    setConnections((prev) =>
+      prev.map((c, i) => (i === idx ? { ...c, [field]: value } : c))
+    );
+  };
+
+  const addConnection = () =>
+    setConnections((prev) => [...prev, { first_name: "", last_name: "" }]);
+
+  const removeConnection = (idx: number) =>
+    setConnections((prev) => prev.filter((_, i) => i !== idx));
+
   // Handle input change
   const handleInputChange = (value: string) => {
     setInputValue(value);
-    setIsDropdownOpen(true);
 
     // Parse first and last name from input
     const nameParts = value.trim().split(" ");
@@ -83,7 +97,6 @@ export default function AddConnectionModal({
     setFirstNameValue(profile.first_name);
     setLastNameValue(profile.last_name);
     setInputValue(`${profile.first_name} ${profile.last_name}`);
-    setIsDropdownOpen(false);
   };
 
   // Handle form submission
@@ -99,10 +112,7 @@ export default function AddConnectionModal({
           first_name: firstNameValue.trim(),
           last_name: lastNameValue.trim(),
         },
-        connections: selectedConnections.map((connection) => ({
-          first_name: connection.first_name,
-          last_name: connection.last_name,
-        })),
+        connections: connections,
         connectEveryone,
       };
 
@@ -125,7 +135,7 @@ export default function AddConnectionModal({
       setFirstNameValue("");
       setLastNameValue("");
       setInputValue("");
-      setSelectedConnections([]);
+      setConnections([]);
       setConnectEveryone(false);
       onClose();
     } catch (error) {
@@ -141,9 +151,8 @@ export default function AddConnectionModal({
       setFirstNameValue("");
       setLastNameValue("");
       setInputValue("");
-      setSelectedConnections([]);
+      setConnections([]);
       setConnectEveryone(false);
-      setIsDropdownOpen(false);
     }
   }, [isOpen]);
 
@@ -156,107 +165,93 @@ export default function AddConnectionModal({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="name">Name</Label>
-            <DropdownMenu
-              open={isDropdownOpen}
-              onOpenChange={setIsDropdownOpen}
-            >
-              <DropdownMenuTrigger asChild>
-                <div className="relative">
-                  <Input
-                    id="name"
-                    value={inputValue}
-                    onChange={(e) => handleInputChange(e.target.value)}
-                    placeholder="Enter full name..."
-                    className="pr-8"
-                  />
-                  <ChevronDown className="absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                </div>
-              </DropdownMenuTrigger>
+            <div className="space-y-2">
+              <Input
+                id="name"
+                value={inputValue}
+                onChange={(e) => handleInputChange(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && filteredProfiles.length > 0) {
+                    e.preventDefault();
+                    handleProfileSelect(filteredProfiles[0]); // Select first suggestion on Enter
+                  }
+                }}
+                placeholder="Enter full name..."
+              />
               {filteredProfiles.length > 0 && inputValue && (
-                <DropdownMenuContent className="w-full min-w-[200px] max-h-[200px] overflow-y-auto">
+                <div className="border rounded-md bg-muted/50 max-h-[150px] overflow-y-auto">
+                  <div className="p-2 text-sm text-muted-foreground border-b">
+                    Suggestions:
+                  </div>
                   {filteredProfiles.slice(0, 10).map((profile: Profile) => {
                     const fullName = `${profile.first_name} ${profile.last_name}`;
                     return (
-                      <DropdownMenuItem
+                      <div
                         key={profile.id}
                         onClick={() => handleProfileSelect(profile)}
-                        className="cursor-pointer"
+                        className="p-2 text-sm hover:bg-muted cursor-pointer border-b last:border-b-0"
                       >
                         {fullName}
-                      </DropdownMenuItem>
+                      </div>
                     );
                   })}
-                </DropdownMenuContent>
+                </div>
               )}
-            </DropdownMenu>
+            </div>
           </div>
 
-          {/* Selected connections display */}
-          {selectedConnections.length > 0 && (
-            <div className="space-y-2">
-              <Label>Selected connections:</Label>
-              <div className="flex flex-wrap gap-2">
-                {selectedConnections.map((connection) => (
-                  <div
-                    key={connection.id}
-                    className="flex items-center gap-1 bg-secondary px-2 py-1 rounded text-sm"
-                  >
-                    <span>
-                      {connection.first_name} {connection.last_name}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setSelectedConnections((prev) =>
-                          prev.filter((c) => c.id !== connection.id)
+          {/* Connections */}
+          <div className="space-y-2">
+            <Label>Connections</Label>
+            {connections.map((c, idx) => (
+              <div
+                key={idx}
+                className="flex gap-2 mb-4 border rounded-lg p-4 bg-background/50"
+              >
+                <div className="flex-1 space-y-2">
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="First name"
+                      value={c.first_name}
+                      onChange={(e) =>
+                        handleConnectionChange(
+                          idx,
+                          "first_name",
+                          e.target.value
                         )
                       }
-                      className="ml-1 text-muted-foreground hover:text-foreground"
-                    >
-                      ×
-                    </button>
+                      className="flex-1"
+                    />
+                    <Input
+                      placeholder="Last name"
+                      value={c.last_name}
+                      onChange={(e) =>
+                        handleConnectionChange(idx, "last_name", e.target.value)
+                      }
+                      className="flex-1"
+                    />
                   </div>
-                ))}
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Remove connection"
+                  onClick={() => removeConnection(idx)}
+                >
+                  ×
+                </Button>
               </div>
-            </div>
-          )}
-
-          {/* Add connection button */}
-          {profiles.length > 0 && (
+            ))}
             <Button
               type="button"
               variant="outline"
-              onClick={() => {
-                // Show a simple prompt to select from existing profiles
-                const profileNames = profiles.map(
-                  (p: Profile) => `${p.first_name} ${p.last_name}`
-                );
-                const selectedName = prompt(
-                  "Select a profile to connect with:\n\n" +
-                    profileNames.join("\n")
-                );
-                if (selectedName) {
-                  const selectedProfile = profiles.find(
-                    (p: Profile) =>
-                      `${p.first_name} ${p.last_name}` === selectedName
-                  );
-                  if (
-                    selectedProfile &&
-                    !selectedConnections.find(
-                      (c) => c.id === selectedProfile.id
-                    )
-                  ) {
-                    setSelectedConnections((prev) => [
-                      ...prev,
-                      selectedProfile,
-                    ]);
-                  }
-                }
-              }}
+              onClick={addConnection}
+              className="mt-2"
             >
               + Add connection
             </Button>
-          )}
+          </div>
 
           <div className="flex items-center space-x-2">
             <Checkbox
