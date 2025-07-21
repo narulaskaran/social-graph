@@ -4,33 +4,18 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 
-// Mock react-force-graph-2d
-interface GraphData {
-  nodes: Array<{ id: string; name: string }>;
-  links: Array<{ source: string; target: string }>;
-}
+// Mock react-force-graph-2d with a simple component
+jest.mock("react-force-graph-2d", () => {
+  const MockForceGraph2D = (props: any) => {
+    return React.createElement("div", { "data-testid": "force-graph-2d" });
+  };
+  MockForceGraph2D.displayName = "MockForceGraph2D";
 
-interface MockForceGraphProps {
-  graphData?: GraphData;
-  nodeId?: string;
-  linkSource?: string;
-  linkTarget?: string;
-  onNodeClick?: (node: { id: string; name: string }) => void;
-  onNodeRightClick?: (node: { id: string; name: string }) => void;
-  [key: string]: unknown;
-}
-
-const MockForceGraph2D = React.forwardRef<HTMLDivElement, MockForceGraphProps>(
-  (props, ref) => {
-    return <div data-testid="force-graph-2d" ref={ref} />;
-  }
-);
-MockForceGraph2D.displayName = "MockForceGraph2D";
-
-jest.mock("react-force-graph-2d", () => ({
-  __esModule: true,
-  default: MockForceGraph2D,
-}));
+  return {
+    __esModule: true,
+    default: MockForceGraph2D,
+  };
+});
 
 // Mock the graph query
 const MockQueryComponent = React.memo<{ children: React.ReactNode }>(
@@ -110,7 +95,7 @@ describe("SocialGraph", () => {
     render(<SocialGraph />, { wrapper: createTestQueryClient() });
 
     await waitFor(() => {
-      expect(screen.getByTestId("force-graph")).toBeInTheDocument();
+      expect(screen.getByTestId("force-graph-2d")).toBeInTheDocument();
     });
   });
 });
