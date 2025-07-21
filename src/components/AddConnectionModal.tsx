@@ -43,16 +43,18 @@ export default function AddConnectionModal({
   const queryClient = useQueryClient();
 
   // Fetch all profiles for the current graph
-  const { data: profiles = [] } = useQuery({
-    queryKey: ["profiles", currentGraphId],
+  const { data: graphData } = useQuery({
+    queryKey: ["graph", currentGraphId],
     queryFn: async () => {
-      const response = await fetch(`/api/graphs/${currentGraphId}/profiles`);
+      const response = await fetch(`/api/graphs/${currentGraphId}`);
       if (!response.ok) {
-        throw new Error("Failed to fetch profiles");
+        throw new Error("Failed to fetch graph data");
       }
       return response.json();
     },
   });
+
+  const profiles = graphData?.profiles || [];
 
   // Filter profiles based on input
   const filteredProfiles = profiles.filter((profile: Profile) => {
@@ -91,64 +93,33 @@ export default function AddConnectionModal({
 
     setIsSubmitting(true);
     try {
-      // Add the new profile
-      const addResponse = await fetch("/api/add", {
+      // Prepare the request body in the format expected by the API
+      const requestBody = {
+        self: {
+          first_name: firstNameValue.trim(),
+          last_name: lastNameValue.trim(),
+        },
+        connections: selectedConnections.map((connection) => ({
+          first_name: connection.first_name,
+          last_name: connection.last_name,
+        })),
+        connectEveryone,
+      };
+
+      // Add the new profile and connections using the graph-specific endpoint
+      const addResponse = await fetch(`/api/graphs/${currentGraphId}/add`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          firstName: firstNameValue.trim(),
-          lastName: lastNameValue.trim(),
-          graphId: currentGraphId,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!addResponse.ok) {
-        throw new Error("Failed to add profile");
-      }
-
-      const newProfile = await addResponse.json();
-
-      // Add connections if any are selected
-      if (selectedConnections.length > 0) {
-        const connectionPromises = selectedConnections.map((connection) =>
-          fetch("/api/connections", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              profileAId: newProfile.id,
-              profileBId: connection.id,
-              graphId: currentGraphId,
-            }),
-          })
-        );
-
-        await Promise.all(connectionPromises);
-      }
-
-      // Connect everyone if checkbox is checked
-      if (connectEveryone) {
-        const allProfiles = profiles.filter(
-          (profile: Profile) => profile.id !== newProfile.id
-        );
-
-        const connectionPromises = allProfiles.map((profile: Profile) =>
-          fetch("/api/connections", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              profileAId: newProfile.id,
-              profileBId: profile.id,
-              graphId: currentGraphId,
-            }),
-          })
-        );
-
-        await Promise.all(connectionPromises);
+        const errorData = await addResponse.json();
+        throw new Error(errorData.error || "Failed to add profile");
       }
 
       // Invalidate queries to refresh the UI
       queryClient.invalidateQueries({ queryKey: ["graph", currentGraphId] });
-      queryClient.invalidateQueries({ queryKey: ["profiles", currentGraphId] });
 
       // Reset form
       setFirstNameValue("");
