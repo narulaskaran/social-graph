@@ -1,24 +1,30 @@
-// Moved from src/app/api/graph/route.test.ts for test standardization
-
 import { GET } from "@/app/api/graph/route";
-import { NextRequest } from "next/server";
-
-// Mock the database
-jest.mock("@/lib/db", () => ({
-  getDatabase: jest.fn(() => ({
-    getProfiles: jest.fn().mockResolvedValue([
-      {
-        id: "test1",
-        first_name: "John",
-        last_name: "Doe",
-        graph_id: "default",
-      },
-    ]),
-    getConnections: jest.fn().mockResolvedValue([]),
-  })),
-}));
+import { getDatabase } from "@/lib/db";
 
 describe("/api/graph", () => {
+  let db: any;
+
+  beforeEach(async () => {
+    // Get the actual MockDatabase instance
+    db = getDatabase();
+
+    // Clear the database
+    await db.clearDatabase();
+
+    // Set up test data
+    await db.upsertProfile({
+      id: "test1",
+      first_name: "John",
+      last_name: "Doe",
+      graph_id: "default",
+    });
+  });
+
+  afterEach(async () => {
+    // Clean up
+    await db.clearDatabase();
+  });
+
   it("should return graph data", async () => {
     const response = await GET();
     const data = await response.json();

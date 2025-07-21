@@ -1,36 +1,25 @@
-// Moved from src/app/api/add/route.test.ts for test standardization
 import { POST } from "@/app/api/add/route";
 import { getDatabase } from "@/lib/db";
 
-// Mock the database
-jest.mock("@/lib/db", () => ({
-  getDatabase: jest.fn(),
-}));
-
-const mockDatabase = {
-  getProfiles: jest.fn().mockResolvedValue([]),
-  getProfile: jest.fn().mockResolvedValue(null),
-  upsertProfile: jest.fn(),
-  upsertProfiles: jest.fn(),
-  upsertConnection: jest.fn(),
-  upsertConnections: jest.fn(),
-  getConnections: jest.fn().mockResolvedValue([]),
-  deleteConnection: jest.fn(),
-  clearDatabase: jest.fn(),
-  createGraph: jest.fn(),
-  getGraph: jest.fn(),
-  deleteGraph: jest.fn(),
-};
-
-beforeEach(() => {
-  jest.clearAllMocks();
-  (getDatabase as jest.MockedFunction<typeof getDatabase>).mockReturnValue(
-    mockDatabase
-  );
-});
-
 describe("POST /api/add", () => {
+  let db: any;
+
+  beforeEach(async () => {
+    // Get the actual MockDatabase instance
+    db = getDatabase();
+
+    // Clear the database
+    await db.clearDatabase();
+  });
+
+  afterEach(async () => {
+    // Clean up
+    await db.clearDatabase();
+  });
+
   it("successfully adds profiles and connections", async () => {
+    const spy = jest.spyOn(db, "upsertConnections");
+
     const request = new Request("http://localhost:3000/api/add", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -58,10 +47,14 @@ describe("POST /api/add", () => {
 
     expect(response.status).toBe(200);
     expect(data.success).toBe(true);
-    expect(mockDatabase.upsertConnections).toHaveBeenCalled();
+    expect(spy).toHaveBeenCalled();
+
+    spy.mockRestore();
   });
 
   it("connects everyone when connectEveryone is true", async () => {
+    const spy = jest.spyOn(db, "upsertConnections");
+
     const request = new Request("http://localhost:3000/api/add", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -82,7 +75,9 @@ describe("POST /api/add", () => {
 
     const response = await POST(request);
     expect(response.status).toBe(200);
-    expect(mockDatabase.upsertConnections).toHaveBeenCalled();
+    expect(spy).toHaveBeenCalled();
+
+    spy.mockRestore();
   });
 
   it("returns 400 if self profile fields are missing", async () => {
@@ -126,7 +121,9 @@ describe("POST /api/add", () => {
   });
 
   it("handles database errors", async () => {
-    mockDatabase.upsertConnections.mockRejectedValueOnce(new Error("DB Error"));
+    const spy = jest
+      .spyOn(db, "upsertConnections")
+      .mockRejectedValueOnce(new Error("DB Error"));
 
     const request = new Request("http://localhost:3000/api/add", {
       method: "POST",
@@ -142,5 +139,7 @@ describe("POST /api/add", () => {
 
     const response = await POST(request);
     expect(response.status).toBe(500);
+
+    spy.mockRestore();
   });
 });
