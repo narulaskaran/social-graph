@@ -1,128 +1,105 @@
 "use client";
 
-import { AddConnectionModal } from "../components/AddConnectionModal";
-import { ThemeToggle } from "../components/ThemeToggle";
-import dynamic from "next/dynamic";
-import Image from "next/image";
+import { GraphProvider, useCreateGraph } from "@/components/GraphProvider";
+import { ReactQueryProvider } from "@/components/ReactQueryProvider";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { Button } from "@/components/ui/button";
+import { PlusIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 
-const SocialGraph = dynamic(
-  () => import("../components/SocialGraph").then((mod) => mod.SocialGraph),
-  {
-    ssr: false,
-  }
-);
+function HomePageContent() {
+  const { createGraph, isCreating } = useCreateGraph();
+  const router = useRouter();
 
-export default function Home() {
+  const handleCreateGraph = async () => {
+    const result = await createGraph();
+    if (result) {
+      router.push(`/graph/${result.graph.id}`);
+    }
+  };
+
   return (
-    <main className="relative w-screen h-screen overflow-hidden">
-      <SocialGraph />
-      <ThemeToggle />
-      <AddConnectionModal
-        trigger={
-          <button className="fixed top-4 right-4 z-10 px-4 py-2 rounded bg-primary text-primary-foreground shadow hover:bg-primary/90 transition">
-            Add to the network
-          </button>
-        }
-      />
-      <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-        <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-          <Image
-            className="dark:invert"
-            src="/next.svg"
-            alt="Next.js logo"
-            width={180}
-            height={38}
-            style={{ width: "auto", height: "auto" }}
-            priority
-          />
-          <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-            <li className="mb-2 tracking-[-.01em]">
-              Get started by editing{" "}
-              <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-                src/app/page.tsx
-              </code>
-              .
-            </li>
-            <li className="tracking-[-.01em]">
-              Save and see your changes instantly.
-            </li>
-          </ol>
-
-          <div className="flex gap-4 items-center flex-col sm:flex-row">
-            <a
-              className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-              href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Image
-                className="dark:invert"
-                src="/vercel.svg"
-                alt="Vercel logomark"
-                width={20}
-                height={20}
-                style={{ width: "auto", height: "auto" }}
-              />
-              Deploy now
-            </a>
-            <a
-              className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-              href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Read our docs
-            </a>
-          </div>
-        </main>
-        <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-          <a
-            className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-            href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              aria-hidden
-              src="/file.svg"
-              alt="File icon"
-              width={16}
-              height={16}
-            />
-            Learn
-          </a>
-          <a
-            className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-            href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              aria-hidden
-              src="/window.svg"
-              alt="Window icon"
-              width={16}
-              height={16}
-            />
-            Examples
-          </a>
-          <a
-            className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-            href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              aria-hidden
-              src="/globe.svg"
-              alt="Globe icon"
-              width={16}
-              height={16}
-            />
-            Go to nextjs.org →
-          </a>
-        </footer>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <div className="fixed top-4 right-4 z-20">
+        <ThemeToggle />
       </div>
-    </main>
+
+      <div className="container mx-auto px-4 py-16">
+        <div className="text-center max-w-4xl mx-auto">
+          <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Social Graph Builder
+          </h1>
+          <p className="text-xl text-muted-foreground mb-12 leading-relaxed">
+            Create interactive social network visualizations. Map connections
+            between people, explore relationships, and share your networks with
+            others through unique URLs.
+          </p>
+
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-gray-200/50 dark:border-gray-700/50 mb-16">
+            <h2 className="text-2xl font-semibold mb-4">
+              Ready to start mapping connections?
+            </h2>
+            <p className="text-muted-foreground mb-6">
+              Each graph is completely isolated with its own shareable URL.
+              Perfect for different projects, teams, or social circles.
+            </p>
+
+            <Button
+              onClick={handleCreateGraph}
+              disabled={isCreating}
+              size="lg"
+              className="text-lg px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+            >
+              <PlusIcon size={20} className="mr-3" />
+              {isCreating ? "Creating..." : "Create New Graph"}
+            </Button>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 text-left">
+            <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-6 border border-gray-200/30 dark:border-gray-700/30">
+              <div className="text-blue-600 dark:text-blue-400 text-2xl mb-3">
+                🔗
+              </div>
+              <h3 className="font-semibold mb-2">Easy Connections</h3>
+              <p className="text-sm text-muted-foreground">
+                Simply add names and define relationships. No complex setup
+                required.
+              </p>
+            </div>
+
+            <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-6 border border-gray-200/30 dark:border-gray-700/30">
+              <div className="text-purple-600 dark:text-purple-400 text-2xl mb-3">
+                🎯
+              </div>
+              <h3 className="font-semibold mb-2">Interactive Visualization</h3>
+              <p className="text-sm text-muted-foreground">
+                Drag nodes, zoom, and explore your network in an intuitive
+                interface.
+              </p>
+            </div>
+
+            <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-6 border border-gray-200/30 dark:border-gray-700/30">
+              <div className="text-green-600 dark:text-green-400 text-2xl mb-3">
+                📤
+              </div>
+              <h3 className="font-semibold mb-2">Shareable Links</h3>
+              <p className="text-sm text-muted-foreground">
+                Every graph gets a unique URL that you can share with anyone.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <ReactQueryProvider>
+      <GraphProvider>
+        <HomePageContent />
+      </GraphProvider>
+    </ReactQueryProvider>
   );
 }

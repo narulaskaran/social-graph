@@ -1,101 +1,45 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { Database, Profile, Connection } from "@/lib/db/types";
+import type { Database, Profile } from "@/lib/db/types";
 
-// Create in-memory database for testing
-const profiles: Map<string, Profile> = new Map();
-const connections: Connection[] = [];
+const profiles = new Map<string, Profile>();
+const connections = new Map<string, any>();
 
-// Define mock implementation
-const mockDb: any = {
-  // Profile operations
+const mockDatabase: Database = {
+  createGraph: async () => ({
+    id: "test-graph",
+    created_at: new Date(),
+    updated_at: new Date(),
+  }),
+  getGraph: async () => null,
+  deleteGraph: async () => {},
+
   upsertProfile: async (profile: Profile) => {
-    profiles.set(profile.linkedin_username, { ...profile });
-    return Promise.resolve();
+    profiles.set(profile.id, { ...profile });
   },
 
-  upsertProfiles: async (newProfiles: Profile[]) => {
-    for (const profile of newProfiles) {
-      profiles.set(profile.linkedin_username, { ...profile });
-    }
-    return Promise.resolve();
+  upsertProfiles: async (profileList: Profile[]) => {
+    profileList.forEach((profile) => {
+      profiles.set(profile.id, { ...profile });
+    });
   },
 
-  getProfile: async (linkedin_username: string) => {
-    const profile = profiles.get(linkedin_username);
-    return Promise.resolve(profile ? { ...profile } : null);
+  getProfile: async (id: string) => {
+    const profile = profiles.get(id);
+    return profile || null;
   },
 
-  getProfiles: async () => {
-    return Promise.resolve(Array.from(profiles.values()));
+  getProfiles: async (graph_id: string) => {
+    return Array.from(profiles.values()).filter((p) => p.graph_id === graph_id);
   },
 
-  // Connection operations
-  upsertConnection: async (connection: Connection) => {
-    const [a, b] = [connection.profile_a, connection.profile_b].sort();
-    const existingConnection = connections.find(
-      (c) => c.profile_a === a && c.profile_b === b
-    );
-
-    if (!existingConnection) {
-      connections.push({ profile_a: a, profile_b: b });
-    }
-    return Promise.resolve();
-  },
-
-  upsertConnections: async (newConnections: Connection[]) => {
-    for (const connection of newConnections) {
-      const [a, b] = [connection.profile_a, connection.profile_b].sort();
-      const existingConnection = connections.find(
-        (c) => c.profile_a === a && c.profile_b === b
-      );
-
-      if (!existingConnection) {
-        connections.push({ profile_a: a, profile_b: b });
-      }
-    }
-    return Promise.resolve();
-  },
-
-  getConnections: async () => {
-    return Promise.resolve([...connections]);
-  },
-
-  deleteConnection: async (connection: Connection) => {
-    const [a, b] = [connection.profile_a, connection.profile_b].sort();
-    const index = connections.findIndex(
-      (c) => c.profile_a === a && c.profile_b === b
-    );
-
-    if (index !== -1) {
-      connections.splice(index, 1);
-    }
-    return Promise.resolve();
-  },
-
+  upsertConnection: async () => {},
+  upsertConnections: async () => {},
+  getConnections: async () => [],
+  deleteConnection: async () => {},
   clearDatabase: async () => {
     profiles.clear();
-    connections.length = 0;
-    return Promise.resolve();
+    connections.clear();
   },
 };
 
-// Add Jest spies to all methods
-for (const method of Object.keys(mockDb)) {
-  jest.spyOn(mockDb, method);
-}
-
-export function getDatabase(): Database {
-  return mockDb;
-}
-
-export function resetDatabaseInstance(): void {
-  profiles.clear();
-  connections.length = 0;
-
-  // Clear all spies
-  for (const method of Object.keys(mockDb)) {
-    (mockDb[method] as jest.SpyInstance).mockClear();
-  }
-}
-
-export type { Database, Profile, Connection };
+export const getDatabase = () => mockDatabase;

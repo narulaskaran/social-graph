@@ -7,19 +7,37 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Graph {
+  id          String        @id @default(cuid())
+  created_at  DateTime      @default(now())
+  updated_at  DateTime      @updatedAt
+  profiles    Profile[]
+  connections Connections[]
+
+  @@map("graphs")
+}
+
 model Profile {
-  linkedin_username String        @id
-  first_name        String
-  last_name         String
-  connectionsA      Connections[] @relation("A")
-  connectionsB      Connections[] @relation("B")
+  id           String        @id @default(cuid())
+  first_name   String
+  last_name    String
+  graph_id     String
+  graph        Graph         @relation(fields: [graph_id], references: [id], onDelete: Cascade)
+  connectionsA Connections[] @relation("A")
+  connectionsB Connections[] @relation("B")
+
+  @@unique([first_name, last_name, graph_id])
+  @@map("profiles")
 }
 
 model Connections {
-  profile_a String
-  profile_b String
-  profileA  Profile @relation("A", fields: [profile_a], references: [linkedin_username])
-  profileB  Profile @relation("B", fields: [profile_b], references: [linkedin_username])
+  profile_a_id String
+  profile_b_id String
+  graph_id     String
+  graph        Graph   @relation(fields: [graph_id], references: [id], onDelete: Cascade)
+  profileA     Profile @relation("A", fields: [profile_a_id], references: [id])
+  profileB     Profile @relation("B", fields: [profile_b_id], references: [id])
 
-  @@id([profile_a, profile_b])
+  @@id([profile_a_id, profile_b_id, graph_id])
+  @@map("connections")
 }

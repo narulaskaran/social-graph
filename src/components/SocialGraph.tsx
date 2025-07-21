@@ -2,7 +2,6 @@
 
 import { DeleteConnectionDialog } from "./DeleteConnectionDialog";
 import { NodeSearch } from "./NodeSearch";
-import { ProfileModal } from "./ProfileModal";
 import { useQuery } from "@tanstack/react-query";
 import React, {
   useMemo,
@@ -18,20 +17,13 @@ import type {
   LinkObject,
 } from "react-force-graph-2d";
 
-interface Profile {
-  id: string;
-  firstName: string;
-  lastName: string;
-  linkedinUrl: string;
-}
-
 interface Connection {
-  profile_a: string;
-  profile_b: string;
+  profile_a_id: string;
+  profile_b_id: string;
 }
 
 interface ApiProfile {
-  linkedin_username: string;
+  id: string;
   first_name: string;
   last_name: string;
 }
@@ -54,15 +46,13 @@ interface GraphData {
   links: GraphLink[];
 }
 
-export function SocialGraph() {
+export function SocialGraph({ graphId }: { graphId?: string }) {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
   const [edgeCreation, setEdgeCreation] = useState<{
     fromNode: { id: string; x: number; y: number } | null;
     toPosition: { x: number; y: number } | null;
   }>({ fromNode: null, toPosition: null });
-  const [selectedProfile] = useState<Profile | null>(null);
   const fgRef = useRef<
     | ForceGraphMethods<
         NodeObject<GraphNode>,
@@ -95,9 +85,10 @@ export function SocialGraph() {
     error,
     refetch,
   } = useQuery({
-    queryKey: ["graph"],
+    queryKey: ["graph", graphId],
     queryFn: async () => {
-      const res = await fetch("/api/graph");
+      const apiUrl = graphId ? `/api/graphs/${graphId}` : "/api/graph";
+      const res = await fetch(apiUrl);
       if (!res.ok) throw new Error("Failed to fetch graph");
       return res.json();
     },
@@ -106,13 +97,13 @@ export function SocialGraph() {
   const graphData: GraphData = useMemo(() => {
     if (!queryData) return { nodes: [], links: [] };
     const nodes = (queryData.profiles as ApiProfile[]).map((p) => ({
-      id: p.linkedin_username,
+      id: p.id,
       label: `${p.first_name} ${p.last_name}`,
       tier: 3, // Default tier
     }));
     const links = (queryData.connections as Connection[]).map((c) => ({
-      source: c.profile_a,
-      target: c.profile_b,
+      source: c.profile_a_id,
+      target: c.profile_b_id,
     }));
 
     // Update node tiers based on selected node
@@ -172,8 +163,12 @@ export function SocialGraph() {
 
   const handleConnectionCreate = useCallback(
     async (fromNode: { id: string }, toNode: { id: string }) => {
+      if (!graphId) {
+        console.error("No graph ID provided");
+        return;
+      }
       try {
-        const res = await fetch("/api/connections", {
+        const res = await fetch(`/api/graphs/${graphId}/connections`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -187,7 +182,7 @@ export function SocialGraph() {
         console.error("Error creating connection:", err);
       }
     },
-    [refetch]
+    [refetch, graphId]
   );
 
   // Mouse move for edge creation effect
@@ -291,10 +286,10 @@ export function SocialGraph() {
   );
 
   const handleDeleteConnection = useCallback(async () => {
-    if (!selectedEdge) return;
+    if (!selectedEdge || !graphId) return;
 
     try {
-      const res = await fetch("/api/connections", {
+      const res = await fetch(`/api/graphs/${graphId}/connections`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -310,7 +305,7 @@ export function SocialGraph() {
     } catch (err) {
       console.error("Error deleting connection:", err);
     }
-  }, [selectedEdge, refetch]);
+  }, [selectedEdge, refetch, graphId]);
 
   const handleNodeSelect = useCallback(
     (node: { id: string; label: string }) => {
@@ -462,13 +457,6 @@ export function SocialGraph() {
             strokeWidth={2}
           />
         </svg>
-      )}
-      {selectedProfile && (
-        <ProfileModal
-          profile={selectedProfile}
-          open={modalOpen}
-          onOpenChange={setModalOpen}
-        />
       )}
       {selectedEdge && (
         <DeleteConnectionDialog

@@ -1,62 +1,72 @@
-// Moved from src/app/api/add/route.test.ts for test standardization
 import { POST } from "@/app/api/add/route";
-
-// Mock the database module
-jest.mock("@/lib/db");
+import { getDatabase } from "@/lib/db";
 
 describe("POST /api/add", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+  let db: any;
+
+  beforeEach(async () => {
+    // Get the actual MockDatabase instance
+    db = getDatabase();
+
+    // Clear the database
+    await db.clearDatabase();
   });
 
-  it("adds new profiles and connections", async () => {
+  afterEach(async () => {
+    // Clean up
+    await db.clearDatabase();
+  });
+
+  it("successfully adds profiles and connections", async () => {
+    const spy = jest.spyOn(db, "upsertConnections");
+
     const request = new Request("http://localhost:3000/api/add", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         self: {
-          linkedin_url: "https://linkedin.com/in/alice-smith",
           first_name: "Alice",
           last_name: "Smith",
         },
         connections: [
           {
-            linkedin_url: "https://linkedin.com/in/bob-jones",
             first_name: "Bob",
-            last_name: "Jones",
+            last_name: "Johnson",
+          },
+          {
+            first_name: "Carol",
+            last_name: "Williams",
           },
         ],
+        connectEveryone: false,
       }),
     });
 
     const response = await POST(request);
     const data = await response.json();
 
-    // In a real test with properly mocked DB, this would return 200
-    // For now, just ensure it doesn't throw an exception
-    expect(data).toBeDefined();
+    expect(response.status).toBe(200);
+    expect(data.success).toBe(true);
+    expect(spy).toHaveBeenCalled();
+
+    spy.mockRestore();
   });
 
-  it("handles connectEveryone flag", async () => {
+  it("connects everyone when connectEveryone is true", async () => {
+    const spy = jest.spyOn(db, "upsertConnections");
+
     const request = new Request("http://localhost:3000/api/add", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         self: {
-          linkedin_url: "https://linkedin.com/in/alice-smith",
           first_name: "Alice",
           last_name: "Smith",
         },
         connections: [
           {
-            linkedin_url: "https://linkedin.com/in/bob-jones",
             first_name: "Bob",
-            last_name: "Jones",
-          },
-          {
-            linkedin_url: "https://linkedin.com/in/carol-lee",
-            first_name: "Carol",
-            last_name: "Lee",
+            last_name: "Johnson",
           },
         ],
         connectEveryone: true,
@@ -64,19 +74,21 @@ describe("POST /api/add", () => {
     });
 
     const response = await POST(request);
-    const data = await response.json();
+    expect(response.status).toBe(200);
+    expect(spy).toHaveBeenCalled();
 
-    // In a real test with properly mocked DB, this would return 200
-    // For now, just ensure it doesn't throw an exception
-    expect(data).toBeDefined();
+    spy.mockRestore();
   });
 
-  it("returns 400 if self profile is missing", async () => {
+  it("returns 400 if self profile fields are missing", async () => {
     const request = new Request("http://localhost:3000/api/add", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        // self missing
+        self: {
+          first_name: "Alice",
+          // last_name is missing
+        },
         connections: [],
       }),
     });
@@ -94,11 +106,10 @@ describe("POST /api/add", () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         self: {
-          linkedin_url: "https://linkedin.com/in/alice-smith",
           first_name: "Alice",
           last_name: "Smith",
         },
-        connections: "not an array",
+        connections: "not-an-array",
       }),
     });
 
@@ -109,34 +120,16 @@ describe("POST /api/add", () => {
     expect(data.error).toBe("Connections must be an array");
   });
 
-  it("returns 400 if self LinkedIn URL is invalid", async () => {
-    const request = new Request("http://localhost:3000/api/add", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        self: {
-          linkedin_url: "invalid-url",
-          first_name: "Alice",
-          last_name: "Smith",
-        },
-        connections: [],
-      }),
-    });
-
-    const response = await POST(request);
-    const data = await response.json();
-
-    expect(response.status).toBe(400);
-    expect(data.error).toBe("Invalid self LinkedIn URL");
-  });
-
   it("handles database errors", async () => {
+    const spy = jest
+      .spyOn(db, "upsertConnections")
+      .mockRejectedValueOnce(new Error("DB Error"));
+
     const request = new Request("http://localhost:3000/api/add", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         self: {
-          linkedin_url: "https://linkedin.com/in/alice-smith",
           first_name: "Alice",
           last_name: "Smith",
         },
@@ -144,11 +137,9 @@ describe("POST /api/add", () => {
       }),
     });
 
-    // This will result in a 500 error because the SQLite database connection fails
     const response = await POST(request);
-    const data = await response.json();
+    expect(response.status).toBe(500);
 
-    // Just ensure it handles errors gracefully
-    expect(data).toBeDefined();
+    spy.mockRestore();
   });
 });

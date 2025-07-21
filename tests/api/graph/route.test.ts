@@ -1,50 +1,39 @@
-// Moved from src/app/api/graph/route.test.ts for test standardization
 import { GET } from "@/app/api/graph/route";
-import { getDatabase, resetDatabaseInstance } from "@/lib/db";
-import type { Connection, Profile } from "@/lib/db/types";
+import { getDatabase } from "@/lib/db";
 
-describe("GET /api/graph", () => {
-  beforeEach(() => {
-    // Reset the database before each test
-    resetDatabaseInstance();
-  });
+describe("/api/graph", () => {
+  let db: any;
 
-  it("retrieves graph data", async () => {
-    const db = getDatabase();
+  beforeEach(async () => {
+    // Get the actual MockDatabase instance
+    db = getDatabase();
 
-    // Add test data
-    const profile: Profile = {
-      linkedin_username: "user1",
+    // Clear the database
+    await db.clearDatabase();
+
+    // Set up test data
+    await db.upsertProfile({
+      id: "test1",
       first_name: "John",
       last_name: "Doe",
-    };
-    const connection: Connection = {
-      profile_a: "user1",
-      profile_b: "user2",
-    };
-
-    await db.upsertProfile(profile);
-    await db.upsertConnection(connection);
-
-    const response = await GET();
-    const data = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(data).toHaveProperty("profiles");
-    expect(data).toHaveProperty("connections");
-    expect(data.profiles).toHaveLength(1);
-    expect(data.connections).toHaveLength(1);
-    expect(data.profiles[0].linkedin_username).toBe("user1");
+      graph_id: "default",
+    });
   });
 
-  it("handles empty database", async () => {
+  afterEach(async () => {
+    // Clean up
+    await db.clearDatabase();
+  });
+
+  it("should return graph data", async () => {
     const response = await GET();
     const data = await response.json();
 
     expect(response.status).toBe(200);
-    expect(data).toHaveProperty("profiles");
-    expect(data).toHaveProperty("connections");
-    expect(data.profiles).toHaveLength(0);
+    expect(data.profiles).toHaveLength(1);
+    expect(data.profiles[0].id).toBe("test1");
+    expect(data.profiles[0].first_name).toBe("John");
+    expect(data.profiles[0].last_name).toBe("Doe");
     expect(data.connections).toHaveLength(0);
   });
 });
