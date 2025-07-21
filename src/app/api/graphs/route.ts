@@ -1,15 +1,14 @@
 import { getDatabase } from "@/lib/db";
 import { handleError } from "@/lib/errors";
 
-export async function GET() {
+export async function POST() {
   try {
     const db = getDatabase();
-    const profiles = await db.getProfiles("default");
-    const connections = await db.getConnections("default");
+    const graph = await db.createGraph();
 
     return Response.json({
-      profiles,
-      connections,
+      graph,
+      shareUrl: `/graph/${graph.id}`,
     });
   } catch (err) {
     return handleError(err);

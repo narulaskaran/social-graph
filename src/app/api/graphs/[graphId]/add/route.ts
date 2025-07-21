@@ -1,5 +1,6 @@
 import { getDatabase } from "@/lib/db";
-import { handleError } from "@/lib/errors";
+import { handleError, AppError } from "@/lib/errors";
+import { isValidGraphId } from "@/utils/graphId";
 
 function generateId(): string {
   return Math.random().toString(36).substr(2, 10);
@@ -10,10 +11,19 @@ interface ConnectionInput {
   last_name: string;
 }
 
-export async function POST(request: Request) {
+export async function POST(
+  request: Request,
+  { params }: { params: { graphId: string } }
+) {
   try {
+    const { graphId } = params;
     const body = await request.json();
     const { self, connections, connectEveryone } = body;
+
+    // Validate graph ID format
+    if (!isValidGraphId(graphId)) {
+      throw new AppError("Invalid graph ID format", 400);
+    }
 
     if (!self || !self.first_name || !self.last_name) {
       return Response.json(
@@ -30,8 +40,11 @@ export async function POST(request: Request) {
 
     const db = getDatabase();
 
-    // For the global endpoint, we'll use a default graph_id
-    const graphId = "default";
+    // Check if graph exists
+    const graph = await db.getGraph(graphId);
+    if (!graph) {
+      throw new AppError("Graph not found", 404);
+    }
 
     // Helper to get or create a profile and return its id
     async function getOrCreateProfileId(

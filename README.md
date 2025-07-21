@@ -1,6 +1,6 @@
 # Social Graph Visualization
 
-This web application provides an interactive visualization of a social network as an undirected graph. It allows for public exploration of the entire network and enables any user to add themselves and their connections.
+This web application provides interactive visualization of social networks as undirected graphs. The application features **shareable sandboxes** - users can create isolated graph instances and share them via unique URLs. Each graph is completely separate, enabling private collaborations, events, or experimental networks alongside the main public graph.
 
 ## Tech Stack
 
@@ -14,17 +14,26 @@ This web application provides an interactive visualization of a social network a
 - **Deployment**: [Vercel](https://vercel.com/)
 - **Testing**: [Jest](https://jestjs.io/), [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/)
 
+## Key Features
+
+🎯 **Shareable Sandboxes**: Create isolated graph instances with unique, shareable URLs  
+🔐 **No Authentication Required**: Anyone with a link can view and edit graphs  
+🌐 **Global & Private Graphs**: Public demo graph plus unlimited private instances  
+📱 **Responsive Design**: Works seamlessly on desktop and mobile devices  
+🔗 **Easy Sharing**: Copy links or use native sharing with one click  
+⚡ **Real-time Updates**: Changes appear instantly for all viewers
+
 ## Project Structure
 
 The project follows a `src` directory structure, standard for modern Next.js applications.
 
-- `src/app/api/`: Contains all backend API routes.
-- `src/app/`: The main application routes and UI pages.
-- `src/components/`: Shared React components.
-- `src/lib/`: Core library functions, including database helpers.
-- `src/utils/`: Shared utility functions.
-- `prisma/`: Contains the Prisma schema (`schema.prisma`), migrations, and seed script.
-- `tests/`: Contains integration and unit tests for the application.
+- `src/app/api/`: Backend API routes for graph management and legacy endpoints
+- `src/app/`: Main application routes including dynamic graph pages (`/graph/[graphId]`)
+- `src/components/`: React components for graph visualization and management
+- `src/lib/`: Database abstraction layer supporting multiple backends
+- `src/utils/`: Utility functions including graph ID generation
+- `prisma/`: Database schema, migrations, and seeding
+- `tests/`: Integration and unit tests
 
 ## Getting Started
 
@@ -91,6 +100,44 @@ npm run test
 
 This will automatically generate the Prisma client before running Jest.
 
+## Usage
+
+### Creating a New Graph
+
+1. Visit the homepage at `/`
+2. Click "Create New Graph"
+3. You'll be redirected to your unique graph URL (e.g., `/graph/abc123def456`)
+4. Share the URL with others to collaborate
+
+### Adding People to a Graph
+
+1. Click the "Add to Network" button
+2. Enter LinkedIn profile information for yourself and connections
+3. Choose whether to connect everyone to each other or just to you
+4. Submit to add the profiles and connections
+
+### Sharing Your Graph
+
+- Use the "Copy Link" button to copy the shareable URL
+- Use "Share" button for native sharing (mobile devices)
+- Send the link to anyone - no login required!
+
+## API Reference
+
+### Graph Management
+
+- `POST /api/graphs` - Create a new graph instance
+- `GET /api/graphs/[graphId]` - Get graph data (profiles + connections)
+- `POST /api/graphs/[graphId]/add` - Add profiles/connections to a graph
+- `POST /api/graphs/[graphId]/connections` - Add a connection
+- `DELETE /api/graphs/[graphId]/connections` - Remove a connection
+
+### Legacy Global Graph (Backward Compatibility)
+
+- `GET /api/graph` - Get global graph data
+- `POST /api/add` - Add to global graph
+- `POST /api/connections` - Manage global connections
+
 ## Deployment
 
 The application is configured for seamless deployment to [Vercel](https://vercel.com/).
@@ -100,3 +147,13 @@ The application is configured for seamless deployment to [Vercel](https://vercel
 3.  Set the `DATABASE_URL` environment variable in the Vercel project settings.
 
 Vercel will automatically build and deploy the application upon each push to the main branch. The `postinstall` script in `package.json` ensures that database migrations are applied during the build process.
+
+## Database Schema
+
+The application uses three main tables:
+
+- **Graph**: Stores graph instances with unique IDs
+- **Profile**: User profiles linked to specific graphs
+- **Connection**: Relationships between profiles within graphs
+
+All data is properly isolated between different graph instances using composite primary keys and foreign key constraints.
