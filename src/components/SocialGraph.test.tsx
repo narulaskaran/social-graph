@@ -6,7 +6,7 @@ import React from "react";
 
 // Mock react-force-graph-2d with a simple component
 jest.mock("react-force-graph-2d", () => {
-  const MockForceGraph2D = (props: any) => {
+  const MockForceGraph2D = () => {
     return React.createElement("div", { "data-testid": "force-graph-2d" });
   };
   MockForceGraph2D.displayName = "MockForceGraph2D";
