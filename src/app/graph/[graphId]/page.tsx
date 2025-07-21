@@ -1,6 +1,6 @@
 "use client";
 
-import { AddConnectionModal } from "@/components/AddConnectionModal";
+import AddConnectionModal from "@/components/AddConnectionModal";
 import { GraphProvider } from "@/components/GraphProvider";
 import { GraphShareButton } from "@/components/GraphShareButton";
 import { ReactQueryProvider } from "@/components/ReactQueryProvider";
@@ -22,6 +22,7 @@ interface GraphPageProps {
 export default function GraphPage({ params }: GraphPageProps) {
   // Unwrap the params promise using React.use()
   const { graphId } = React.use(params);
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
 
   return (
     <ReactQueryProvider>
@@ -29,14 +30,18 @@ export default function GraphPage({ params }: GraphPageProps) {
         <div className="min-h-screen bg-background">
           <div className="fixed top-4 right-4 z-20 flex gap-2">
             <GraphShareButton />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsModalOpen(true)}
+            >
+              <PlusIcon size={16} className="mr-2" />
+              Add to Network
+            </Button>
             <AddConnectionModal
-              graphId={graphId}
-              trigger={
-                <Button variant="outline" size="sm">
-                  <PlusIcon size={16} className="mr-2" />
-                  Add to Network
-                </Button>
-              }
+              isOpen={isModalOpen}
+              onClose={() => setIsModalOpen(false)}
+              currentGraphId={graphId}
             />
             <ThemeToggle />
           </div>

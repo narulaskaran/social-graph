@@ -352,10 +352,6 @@ export function SocialGraph({ graphId }: { graphId?: string }) {
     >
       <div className="fixed top-4 left-1/2 -translate-x-1/2 z-10 flex gap-4 items-center">
         <NodeSearch nodes={graphData.nodes} onSelect={handleNodeSelect} />
-        <div className="bg-primary/90 text-primary-foreground px-4 py-2 rounded shadow">
-          Click one node, then another to create a connection. Click an edge to
-          delete it.
-        </div>
       </div>
       <ForceGraph2D
         ref={fgRef}
